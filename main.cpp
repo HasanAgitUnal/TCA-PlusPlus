@@ -1,12 +1,17 @@
-#include "iostream"
-#include "fstream"
-#include "filesystem"
-#include "sstream"
-#include "cstdint"
-#include "vector"
-#include "string"
-#include "map"
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+#include <sstream>
+#include <cstdint>
+#include <iomanip>
+#include <vector>
+#include <string>
+#include <map>
+#include <bitset>
+
 #include "ArgParser.hpp"
+
+// TODO: Remove this header file and load architecture from json files and with this compiler will doesnt need recompiling on architecture errors
 #include "Architecture.hpp"
 
 using namespace std;
@@ -18,11 +23,11 @@ string output = "program";
 string output_type = "binary";
 
 const string ERROR = "\033[0;21mE:\033[0m ";
-const string WARNING = "\033[0;93;W:\033[0m ";
+const string WARNING = "\033[0;93mW:\033[0m ";
 const string SUCCESS = "\033[0;32mS:\033[0m ";
 const string INFO = "I: ";
 
-vector<string> split(string str, char delim) {
+vector<string> split(const string& str, char delim) {
 	vector<string> items;
 	stringstream ss(str);
 	string item;
@@ -35,10 +40,11 @@ vector<string> split(string str, char delim) {
 	return items;
 }
 
-string strip(string str) {
-	str.erase(0, str.find_first_not_of(" \t\n\r\f\v"));
-	str.erase(str.find_last_not_of(" \t\n\r\f\v") + 1);
-	return str;
+string strip(const string& str) {
+    size_t start = str.find_first_not_of(" \t\n\r\f\v");
+    if (start == string::npos) return "";
+    size_t end = str.find_last_not_of(" \t\n\r\f\v");
+    return str.substr(start, end - start + 1);
 }
 
 template <typename K, typename V>
@@ -50,6 +56,16 @@ map<K, V> mergeMap(const map<K, V> &dest, const map<K, V> &src) {
 
 
 int main (int argc, char* argv[]) {
+	if (MAX_INT_SIZE > 64 || MAX_INT_SIZE < 1) {
+		cout << "\033[0;21mFATAL ERROR: Error in architecture MAX_INT_SIZE should be in range: 1-64.\n"; 
+		return 1;
+	}
+
+	if (INSTRUCTION_SIZE % 8 != 0) {
+		cout << "\033[0;21mFATAL ERROR: Error in architecture INSTRUCTION_SIZE should be multiple of 8.\n";
+		return 1;
+	}
+
 	ArgParser args(argc, argv);
 
 	if (args.hasFlag("--help")) {
@@ -64,7 +80,9 @@ int main (int argc, char* argv[]) {
 		     << "OTYPE:\n"
 		     << "       binary     :     Default output type\n"
 		     << "       text-binary:     Binary as text 0s and 1s\n"
-		     << "       hex        :     Hexadecimal text\n";
+		     << "       hex        :     Hexadecimal text\n\n"
+		     << "NOTE:\n"
+		     << "	If you get an error caused by architecture. You should fix error in Architecture.hpp in source code and rebuild compiler.";
 
 		return 0;
 	} 
@@ -77,7 +95,8 @@ int main (int argc, char* argv[]) {
 		continue_files = true;
 	}
 
-	output = args.getOption("-o");
+	string opt = args.getOption("-o");
+	if (!opt.empty()) output = opt;
 
 	vector<string> inputs = args.getPositional();
 
@@ -100,6 +119,12 @@ int main (int argc, char* argv[]) {
 		cout << ERROR << "Invalid output type: " << output_type << endl;
 		return 1;
 	}
+
+	if (INSTRUCTION_SIZE > 64 && output_type == "hex") {
+		cout << ERROR << "Hex output type not supported for architectures over 64-bit instructions.\n";
+		return 1;
+	}
+
 
 	//
 	// ASSEMBLING STARTS HERE
@@ -146,6 +171,7 @@ int main (int argc, char* argv[]) {
 
 	for (string& code : codelines) {
 		vector<string> splitted = split(code, ' ');
+		if (splitted.empty()) continue; // if im stupid maybe splitted is empty 
 
 		if (KEYWORDS.find(splitted[0]) == KEYWORDS.end()){
 			cout << ERROR << "Invalid keyword: " << splitted[0] << endl;
@@ -155,47 +181,90 @@ int main (int argc, char* argv[]) {
 		const map<string, string> &keyword = KEYWORDS.at(splitted[0]);
 
 		const string &binary = keyword.at("binary");
-		const int argc =  stoi(keyword.at("arg_count"));
+		const int arg_count =  stoi(keyword.at("arg_count"));
 
-		if (splitted.size()-1 > argc || splitted.size()-1 < argc) {
-			cout << ERROR << "Expected " << argc << " arguments but " << splitted.size()-1 << " given.\n";
+		if (splitted.size()-1 > arg_count || splitted.size()-1 < arg_count) {
+			cout << ERROR << "Expected " << arg_count << " arguments but " << splitted.size()-1 << " given.\n";
 			return 1;
 		}
 
 		// If doesnt takes arguments just add command itself
-		if (!(argc == 0)) {
-			if (binary.size() != MAX_INSTRUCTION_SIZE) {
+		if (arg_count == 0) {
+			if (binary.size() != INSTRUCTION_SIZE) {
 				cout << ERROR << "Error in command architecture. Command \"" << splitted[0] << "\" has invalid binary.\n";
 				return 1;
 			}
 
 			binaryCommands.push_back(binary);
+			continue;
 		}
 		
 		// Get valid args from "valid_args" value 
 		vector<string> arg_types = split(keyword.at("valid_args"), '|');
-		map<string, string> valid_args;
+		map<string, string> valid_args = {{"int", "0"}};
 		for (string &type : arg_types) {
-			valid_args = mergeMap(valid_args, ARGS.at(type));
+			if (type != "int") {
+				if (ARGS.find(type) == ARGS.end()) {
+					cout << ERROR << "Unknown arg set in architecture: " << type << endl;
+					return 1;
+				}
+
+				valid_args = mergeMap(valid_args, ARGS.at(type));
+			} else {
+				valid_args["int"] = "1";
+			}
 		}
 
 		// Add argument bytes end to end
-		string binary_code = splitted[0];
+		string binary_code = binary;
 		for (string &arg : splitted) {
 			// skip command name
 			if (arg == splitted[0]) continue;
 
+			
+			uint64_t byte_int;
 			if (valid_args.find(arg) == valid_args.end()){
-				cout << ERROR << "Invalid argument: " << arg << endl;
-				return 1;
+				if (valid_args["int"] == "0") {
+					cout << ERROR << "Invalid argument: " << arg << endl;
+					return 1;
+				} else {
+					long long intarg;
+					try {
+						intarg = stoll(arg);
+					} catch(const exception& e) {
+						cout << ERROR << "Invalid argument: " << arg << endl;
+						return 1;
+					}
+
+					// TODO: Add support for signed binary
+					if (intarg < 0) {
+						cout << ERROR << "Signed binary(negative int) not supported (for now)";
+						return 1;
+					}
+
+					uint64_t uarg = static_cast<uint64_t>(intarg);
+					uint64_t maxInt = (MAX_INT_SIZE == 64) ? UINT64_MAX : (1ULL << MAX_INT_SIZE) - 1;
+					
+					if (uarg > maxInt) {
+						cout << ERROR << "Integer is too big: " << intarg << " .Max integer for this architecture: " << maxInt << endl;
+						return 1;
+					}
+
+					byte_int = uarg;
+				}
 			}
 
-			binary_code += valid_args.at(arg);
+			if (valid_args["int"] == "0") {
+				binary_code += valid_args.at(arg);
+			} else {
+				binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+			}
+
 		}
 
-		if (binary_code.size() != MAX_INSTRUCTION_SIZE) {
+		if (binary_code.size() != INSTRUCTION_SIZE) {
 			cout << ERROR << "Error in architecture or args. Binary command is too long. Command: " << code << endl;
-		
+			return 1;
 		}
 
 		binaryCommands.push_back(binary_code);
@@ -204,7 +273,7 @@ int main (int argc, char* argv[]) {
 	// Prepare the output 
 	vector<uint8_t> output_data;
 
-	if (output_type == "text_binary") {
+	if (output_type == "text-binary") {
 		string text_binary;
 		for (string bin : binaryCommands) {
 			text_binary += bin + "\n";
@@ -213,19 +282,24 @@ int main (int argc, char* argv[]) {
 		output_data.assign(text_binary.begin(), text_binary.end());
 
 	} else if (output_type == "binary") {
-		// Most readable C++ code:
-		for (string bin : binaryCommands) {
-			for (size_t i=0; i<bin.size(); i+=8) {
-				output_data.push_back(stoi(bin.substr(i,8),nullptr,2));
+		// Most readable C++ code:)
+		for (string& bin : binaryCommands) {
+			for (size_t i = 0; i + 8 <= bin.size(); i += 8)
+				output_data.push_back(static_cast<uint8_t>(stoul(bin.substr(i, 8), nullptr, 2)));
+
+			size_t rem = bin.size() % 8;
+			if (rem) {
+				output_data.push_back(static_cast<uint8_t>(stoul(bin.substr(bin.size() - rem), nullptr, 2)));
 			}
 		}
+
 
 	} else { // Hexadecimal
 		string hexadecimal_text;
 		for (string bin : binaryCommands) {
-			unsigned int val = stoi(bin, nullptr, 2);
+			unsigned long long val = stoull(bin, nullptr, 2);
 			stringstream ss;
-			ss << "0x" << hex << setw(2) << setfill('0') << val;
+			ss << "0x" << hex << setw(MAX_INSTRUCTION_SIZE / 4) << setfill('0') << val;
 			hexadecimal_text += ss.str() + "\n";
 		}
 
@@ -237,7 +311,7 @@ int main (int argc, char* argv[]) {
 	out.write(reinterpret_cast<const char*>(output_data.data()), output_data.size());
 	out.close();
 
-	cout << SUCCESS << "Build completed. output file generated at: \"" << fs::absolute(output).string() << "\"\n";
+	cout << SUCCESS << "Build completed. output file generated at: \"" << filesystem::absolute(output).string() << "\"\n";
 
 	return 0;
 }

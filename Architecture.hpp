@@ -8,7 +8,7 @@
 
 // Define everything about your architecture here
 
-inline const int MAX_INSTRUCTION_SIZE = 8;
+inline const int INSTRUCTION_SIZE = 8;
 inline const int MAX_INT_SIZE = 6;
 
 /*
@@ -88,7 +88,7 @@ inline const map<string, map<string, string>> KEYWORDS = {
 	{
 	    {"binary", "01000"},
 	    {"arg_count", "1"},
-	    {"valid_args", "oprr"} 
+	    {"valid_args", "oppr"} 
 	}
     },
     {
@@ -155,7 +155,7 @@ inline const map<string, map<string, string>> ARGS = {
 			{"N", "000"},
 			{"=", "001"},
 			{"<", "010"},
-			{">=", "011"},
+			{"<=", "011"},
 			{"A", "100"},
 			{"!=", "101"},
 			{">=", "110"},
