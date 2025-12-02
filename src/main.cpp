@@ -16,9 +16,6 @@
 
 using namespace std;
 
-bool skip = false;
-bool continue_files = false;
-
 string output = "program";
 string output_type = "binary";
 
@@ -66,33 +63,25 @@ int main (int argc, char* argv[]) {
 		return 1;
 	}
 
+        // handle cli args
+        // TODO: Delete the ArgParser.hpp file and recode it (dont use AI!!!!)
 	ArgParser args(argc, argv);
 
 	if (args.hasFlag("--help")) {
-		cout << "Turing Complete Assempler++ - v0.1\n\n"
+		cout << "Turing Complete Assempler++ - v0.0.1.2\n\n"
 		     << "Usage: tca++ code.asm OPTIONS\n\n"
 		     << "OPTIONS:\n"
 		     << "       --help, -h :     Show this message\n"
 		     << "       -o FILE    :     Output destination\n"
-		     << "       -t OTYPE   :     Output type\n"
-		     << "       --skip     :     Skip the multiple files warning\n"
-		     << "       --continue :     If an error happen while reading a file still continue with others\n\n"
+		     << "       -t OTYPE   :     Output type\n\n"
 		     << "OTYPE:\n"
 		     << "       binary     :     Default output type\n"
 		     << "       text-binary:     Binary as text 0s and 1s\n"
 		     << "       hex        :     Hexadecimal text\n\n"
 		     << "NOTE:\n"
-		     << "	If you get an error caused by architecture. You should fix error in Architecture.hpp in source code and rebuild compiler.";
+		     << "	If you get an error caused by architecture. You should fix error in Architecture.hpp in source code and rebuild compiler.\n";
 
 		return 0;
-	} 
-
-	if (args.hasFlag("--skip")) {
-		skip = true;
-	}
-	
-	if (args.hasFlag("--continue")) {
-		continue_files = true;
 	}
 
 	string opt = args.getOption("-o");
@@ -103,14 +92,6 @@ int main (int argc, char* argv[]) {
 	if (inputs.size() == 0) {
 		cout << ERROR << "no input files given.\n";
 		return 1;
-	} else if (inputs.size() > 1 && !skip) {
-		string confirm;
-		cout << WARNING << "You entered more than 1 file they will be added to end to end.\nWill you continue? [Y/n]: ";
-		cin >> confirm;
-
-		if (confirm == "N" || confirm == "n") {
-			return 0;
-		}
 	}
 
 	output_type = args.getOption("-t");
@@ -137,12 +118,9 @@ int main (int argc, char* argv[]) {
 	for (string& filename : inputs) {
 		ifstream file(filename);
 
-		if (!file.is_open() && !continue_files) {
+		if (!file.is_open()) {
 			cout << ERROR << "Cant read file: " << filename << endl;
 			return 1;
-		} else if (!file.is_open()) {
-			cout << WARNING << "File skipped because of an error: " << filename << endl;
-			continue;
 		}
 
 		stringstream buffer;
@@ -299,7 +277,7 @@ int main (int argc, char* argv[]) {
 		for (string bin : binaryCommands) {
 			unsigned long long val = stoull(bin, nullptr, 2);
 			stringstream ss;
-			ss << "0x" << hex << setw(MAX_INSTRUCTION_SIZE / 4) << setfill('0') << val;
+			ss << "0x" << hex << setw(INSTRUCTION_SIZE / 4) << setfill('0') << val;
 			hexadecimal_text += ss.str() + "\n";
 		}
 

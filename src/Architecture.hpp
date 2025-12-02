@@ -1,6 +1,8 @@
 #pragma once
-#include "map"
-#include "string"
+#include <map>
+#include <string>
+
+using namespace std;
 
 //
 // CPU ARCHITECTURE
@@ -30,7 +32,7 @@ RULES:
 
 
 2)	You can see format at below but if you dont understand whats that:
-	
+
 	{
 		"MVI", // Command name in assembly
 		{
