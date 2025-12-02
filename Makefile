@@ -15,8 +15,8 @@ build: windows-build linux-build
 
 windows-build: main.cpp ArgParser.hpp
 	$(SHELL) -c "mkdir -p build/exe"
-	$(SHELL) -c '$(MINGW_X86) main.cpp -o "build/nt/tca++_x86.exe"'
-	$(SHELL) -c '$(MINGW_X64) main.cpp -o "build/nt/tca++_x64.exe"'
+	$(SHELL) -c '$(MINGW_X86) src/main.cpp -o "build/nt/tca++_x86.exe"'
+	$(SHELL) -c '$(MINGW_X64) src/main.cpp -o "build/nt/tca++_x64.exe"'
 
 linux-build: main.cpp ArgParser.hpp
 	ifeq ($(OS),Windows_NT)
@@ -24,4 +24,4 @@ linux-build: main.cpp ArgParser.hpp
 		@exit 0
 	
 	@mkdir -p "build/linux"
-	g++ main.cpp -o "build/linux/tca++"
+	g++ src/main.cpp -o "build/linux/tca++"
