@@ -8,33 +8,53 @@ else
     SHELL := /bin/bash
 endif
 
-default: clean build-all
+############################################################################################################################
+
+default: clean test build-all
+
+############################################################################################################################
 
 build-all: windows-build linux-build
 	@echo -e "> BUILD\t\t\t[   \033[0;32mCOMPLETED\033[0m   ]"
 	@echo -e "\n> Files generated in build folder"
 
-windows-build: src/main.cpp src/ArgParser.hpp
+#--------------------------------------------------------------------------------------------------------------------------#
+
+windows-build:
 	@echo -e "> BUILD - WINDOWS\t[    RUNNING    ]"
 
 	@$(SHELL) -c "mkdir -p build/exe"
-	@$(SHELL) -c '$(WINCC_X86) src/main.cpp -o "build/exe/tca++_x86.exe"'
-	@$(SHELL) -c '$(WINCC_X64) src/main.cpp -o "build/exe/tca++_x64.exe"'
+	@$(SHELL) -c '$(WINCC_X86) src/functions.cpp src/main.cpp -o "build/exe/tca++_x86.exe"'
+	@$(SHELL) -c '$(WINCC_X64) src/functions.cpp src/main.cpp -o "build/exe/tca++_x64.exe"'
 
 	@echo -e "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]"
 
-linux-build: src/main.cpp src/ArgParser.hpp
+#--------------------------------------------------------------------------------------------------------------------------#
+
+linux-build:
 	@$(SHELL) -c 'tasklist > /dev/null 2>&1; if [ $$? -eq 0 ]; then \
 		echo -e "> BUILD - LINUX\t\t[    SKIPPING    ] : Cant build for Linux in Windows. Skipping Linux build."; \
 	else \
 		echo -e "> BUILD - LINUX\t\t[    RUNNING    ]"; \
 		mkdir -p "build/linux"; \
-		$(CC) src/main.cpp -o "build/linux/tca++"; \
+		$(CC) src/functions.cpp src/main.cpp -o "build/linux/tca++"; \
 		echo -e "> BUILD - LINUX\t\t[    \033[0;32mSUCCESS\033[0m    ]"; \
 	fi'
+
+############################################################################################################################
+
+test:
+
+	@$(SHELL) -c "mkdir build/test"
+
+	@$(SHELL) -c 'echo -e "> TEST  -\t\t\t[    RUNNING    ]'
+
+	@$(SHELL) -c 'g++ src/functions.cpp test/test_main.cpp -o build/test/test -pthread -lgtest -lgtest_main'
+
+	@$(SHELL) -c './build/test/test'
+
+############################################################################################################################
 
 clean:
 	@rm -rf build 1>/dev/null
 	@echo -e "> BUILD - CLEAN \t[    \033[0;32mSUCCESS\033[0m    ]"
-
-.PHONY: src/main.cpp src/ArgParser.hpp
