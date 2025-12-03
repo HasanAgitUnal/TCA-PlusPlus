@@ -27,7 +27,7 @@ RULES:
 	AAAA is your arg and 10 is your opcode but assembler needs -- part.
 	So your opcode in this config file should be 1000
 
-	if your commands has no arguments just binary enter that binary
+	if your commands has no arguments just enter that binary
 
 
 
