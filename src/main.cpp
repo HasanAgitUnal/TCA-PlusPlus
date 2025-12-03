@@ -55,10 +55,10 @@ string strip(const string& str) {
 }
 
 
-string read_files(vector<string> *files) {
+string read_files(vector<string> &files) {
         string readed;
 
-        for (string& filename : *files) {
+        for (string& filename : files) {
                 ifstream file(filename);
 
                 if (!file.is_open()) {
@@ -298,7 +298,7 @@ int main (int argc, char* argv[]) {
         }
 
         // Read and add files end to end
-        string fileContents = read_files(&inputs);
+        string fileContents = read_files(inputs);
 
         // Split lines and remove comments and empty lines
         vector<string> codelines = split_and_clean(fileContents);
