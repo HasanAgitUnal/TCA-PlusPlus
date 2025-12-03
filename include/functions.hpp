@@ -20,10 +20,10 @@ string strip(const string& str);
 // Read given files, add end to and and return as a string
 string read_files(vector<string> &files);
 
-// split str by newlines and remove comments which starts with ';' for every line. skip empty lines 
+// split str by newlines and remove comments which starts with ';' for every line. and strip it. skip empty lines 
 vector<string> split_and_clean(string &str);
 
-// make int arg (but its a string) binary (uint64_t)
+// make int arg (string actualy) binary (uint64_t)
 uint64_t mk_int_arg(string &arg);
 
 // make command binary

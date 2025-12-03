@@ -63,7 +63,7 @@ string read_files(vector<string> &files) {
                 ifstream file(filename);
 
                 if (!file.is_open()) {
-                        cout << ERROR << "Cant read file: " << filename << endl;
+                        cerr << ERROR << "Cant read file: " << filename << endl;
                         exit(1);
                 }
 
@@ -97,13 +97,13 @@ uint64_t mk_int_arg(string &arg) {
         try {
                 intarg = stoll(arg);
         } catch(const exception& e) {
-                cout << ERROR << "Invalid argument: " << arg << endl;
+                cerr << ERROR << "Invalid argument: " << arg << endl;
                 exit(1);
         }
 
         // TODO: Add support for signed binary
         if (intarg < 0) {
-                cout << ERROR << "Signed binary(negative int) not supported (for now)";
+                cerr << ERROR << "Signed binary(negative int) not supported (for now)";
                 exit(1);
         }
 
@@ -111,7 +111,7 @@ uint64_t mk_int_arg(string &arg) {
         uint64_t maxInt = (MAX_INT_SIZE == 64) ? UINT64_MAX : (1ULL << MAX_INT_SIZE) - 1;
 
         if (uarg > maxInt) {
-                cout << ERROR << "Integer is too big: " << intarg << " .Max integer for this architecture: " << maxInt << endl;
+                cerr << ERROR << "Integer is too big: " << intarg << " .Max integer for this architecture: " << maxInt << endl;
                 exit(1);
         }
 
@@ -126,7 +126,7 @@ string mk_binary(vector<string> &splitted, const map<string, string> &keyword, s
         for (string &type : arg_types) {
                 if (type != "int") {
                         if (ARGS.find(type) == ARGS.end()) {
-                                cout << ERROR << "Unknown arg set in architecture: " << type << endl;
+                                cerr << ERROR << "Unknown arg set in architecture: " << type << endl;
                                 exit(1);
                         }
 
@@ -146,7 +146,7 @@ string mk_binary(vector<string> &splitted, const map<string, string> &keyword, s
                 uint64_t byte_int;
                 if (valid_args.find(arg) == valid_args.end()){
                         if (valid_args["int"] == "0") {
-                                cout << ERROR << "Invalid argument: " << arg << endl;
+                                cerr << ERROR << "Invalid argument: " << arg << endl;
                                 exit(1);
                         } else {
 
@@ -163,7 +163,7 @@ string mk_binary(vector<string> &splitted, const map<string, string> &keyword, s
         }
 
         if (binary_code.size() != INSTRUCTION_SIZE) {
-                cout << ERROR << "Error in architecture or args. Binary command is too long. Command: " << code << endl;
+                cerr << ERROR << "Error in architecture or args. Binary command is too long. Command: " << code << endl;
                 exit(1);
         }
         
@@ -179,7 +179,7 @@ vector<string> parse_code(vector<string> &codelines) {
                 if (splitted.empty()) continue; // if im stupid maybe splitted be empty
 
                 if (KEYWORDS.find(splitted[0]) == KEYWORDS.end()){
-                        cout << ERROR << "Invalid keyword: " << splitted[0] << endl;
+                        cerr << ERROR << "Invalid keyword: " << splitted[0] << endl;
                         exit(1);
                 }
 
@@ -189,14 +189,14 @@ vector<string> parse_code(vector<string> &codelines) {
                 const int arg_count =  stoi(keyword.at("arg_count"));
 
                 if (splitted.size()-1 > arg_count || splitted.size()-1 < arg_count) {
-                        cout << ERROR << "Expected " << arg_count << " arguments but " << splitted.size()-1 << " given.\n";
+                        cerr << ERROR << "Expected " << arg_count << " arguments but " << splitted.size()-1 << " given.\n";
                         exit(1);
                 }
 
                 // If doesnt takes arguments just add command itself
                 if (arg_count == 0) {
                         if (binary.size() != INSTRUCTION_SIZE) {
-                                cout << ERROR << "Error in command architecture. Command \"" << splitted[0] << "\" has invalid binary.\n";
+                                cerr << ERROR << "Error in command architecture. Command \"" << splitted[0] << "\" has invalid binary.\n";
                                 exit(1);
                         }
 

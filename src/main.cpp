@@ -72,7 +72,7 @@ int main (int argc, char* argv[]) {
         }
 
         if (INSTRUCTION_SIZE > 64 && output_type == "hex") {
-                cout << ERROR << "Hex output type not supported for architectures over 64-bit instructions.\n";
+                cerr << ERROR << "Hex output type not supported for architectures over 64-bit instructions.\n";
                 return 1;
         }
 
