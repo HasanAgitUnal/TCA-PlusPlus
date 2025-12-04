@@ -13,17 +13,19 @@ endif
 
 ############################################################################################################################
 
-default: clean test build-all
+default: clean test all
 
 ############################################################################################################################
 
-build-all: windows-build linux-build
+build: all
+
+all: windows linux
 	@echo -e "> BUILD\t\t\t[   \033[0;32mCOMPLETED\033[0m   ]"
 	@echo -e "\n> Files generated in build folder"
 
 #--------------------------------------------------------------------------------------------------------------------------#
 
-windows-build:
+windows:
 	@echo -e "> BUILD - WINDOWS\t[    RUNNING    ]"
 
 	@$(SHELL) -c "mkdir -p build/exe"
@@ -34,7 +36,7 @@ windows-build:
 
 #--------------------------------------------------------------------------------------------------------------------------#
 
-linux-build:
+linux:
 	@$(SHELL) -c 'tasklist > /dev/null 2>&1; if [ $$? -eq 0 ]; then \
 		echo -e "> BUILD - LINUX\t\t[    SKIPPING    ] : Cant build for Linux in Windows. Skipping Linux build."; \
 	else \
@@ -47,11 +49,15 @@ linux-build:
 ############################################################################################################################
 
 test:
+	@$(SHELL) -c "echo -e '> BUILD - TEST\t\t[    RUNNING    ]'"
+
 	@$(SHELL) -c "mkdir -p build/test"
 
-	@$(SHELL) -c 'g++ src/functions.cpp test/test_main.cpp -o build/test/test -pthread -lgtest -lgtest_main'
+	@$(SHELL) -c 'g++ src/functions.cpp test/test_main.cpp -o build/test/unittest -pthread -lgtest -lgtest_main'
 
-	@$(SHELL) -c './build/test/test'
+	@$(SHELL) -c './build/test/unittest'
+
+	@$(SHELL) -c "echo -e '> BUILD - TEST\t\t[    \033[32mSUCCESS\033[0m    ]'"
 
 ############################################################################################################################
 
