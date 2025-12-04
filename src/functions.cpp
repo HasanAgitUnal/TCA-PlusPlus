@@ -120,46 +120,50 @@ uint64_t mk_int_arg(string &arg) {
 
 // make command binary
 string mk_binary(vector<string> &splitted, const map<string, string> &keyword, string &code) {
-        // Get valid args from "valid_args" value 
-        vector<string> arg_types = split(keyword.at("valid_args"), '|');
-        map<string, string> valid_args = {{"int", "0"}};
-        for (string &type : arg_types) {
-                if (type != "int") {
-                        if (ARGS.find(type) == ARGS.end()) {
-                                cerr << ERROR << "Unknown arg set in architecture: " << type << endl;
-                                exit(1);
-                        }
-
-                        valid_args = mergeMap(valid_args, ARGS.at(type));
-                } else {
-                        valid_args["int"] = "1";
-                }
-        }
-
-        // Add argument bytes end to end
         string binary_code = keyword.at("binary");
-        for (string &arg : splitted) {
-                // skip command name
-                if (arg == splitted[0]) continue;
 
+        // if arg_count is bigger than zero add arg bytes. otherwise just command opcode will be used as binary_code
+        if ( stoi(keyword.at("arg_count")) > 0 ) {
 
-                uint64_t byte_int;
-                if (valid_args.find(arg) == valid_args.end()){
-                        if (valid_args["int"] == "0") {
-                                cerr << ERROR << "Invalid argument: " << arg << endl;
-                                exit(1);
+                // Get valid args from "valid_args" value 
+                vector<string> arg_types = split(keyword.at("valid_args"), '|');
+                map<string, string> valid_args = {{"int", "0"}};
+                for (string &type : arg_types) {
+                        if (type != "int") {
+                                if (ARGS.find(type) == ARGS.end()) {
+                                        cerr << ERROR << "Unknown arg set in architecture: " << type << endl;
+                                        exit(1);
+                                }
+
+                                valid_args = mergeMap(valid_args, ARGS.at(type));
                         } else {
-
-                                byte_int = mk_int_arg(arg);
+                                valid_args["int"] = "1";
                         }
                 }
 
-                if (valid_args["int"] == "0") {
-                        binary_code += valid_args.at(arg);
-                } else {
-                        binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
-                }
+                // Add argument bytes end to end
+                for (string &arg : splitted) {
+                        // skip command name
+                        if (arg == splitted[0]) continue;
 
+
+                        uint64_t byte_int;
+                        if (valid_args.find(arg) == valid_args.end()){
+                                if (valid_args["int"] == "0") {
+                                        cerr << ERROR << "Invalid argument: " << arg << endl;
+                                        exit(1);
+                                } else {
+
+                                        byte_int = mk_int_arg(arg);
+                                }
+                        }
+
+                        if (valid_args["int"] == "0") {
+                                binary_code += valid_args.at(arg);
+                        } else {
+                                binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                        }
+                }
         }
 
         if (binary_code.size() != INSTRUCTION_SIZE) {
