@@ -23,7 +23,6 @@ To install TCA++ by compiling from source, you will need the following prerequis
 2.  Configure the `include/Architecture.hpp` file for your specific CPU architecture. Refer to the [Configuration Guide](#configuration-guide) below for detailed instructions.
 
 3.  Compile the project:
-    *Note: On Windows, ensure you have the MinGW compiler downloaded and accessible from your terminal.*
 
     For Windows:
     ```bash
@@ -35,9 +34,12 @@ To install TCA++ by compiling from source, you will need the following prerequis
     make linux
     ```
 
+4. Adding to PATH
+    Look below for adding tca++ to the path
+
 ### Adding to PATH
 
-After a successful build, the executable will be located in the `build` folder. To use `tca++` from any directory, you should add its location to your operating system's PATH environment variable.
+For using `tca++` command you should add it to the PATH environment variable.
 
 #### For Linux
 
@@ -55,7 +57,7 @@ After a successful build, the executable will be located in the `build` folder. 
 
 #### For Windows
 
-Open Command Prompt (CMD) and execute the appropriate commands:
+Open CMD and execute the appropriate commands:
 
 If your computer is 64-bit:
 ```bash
@@ -69,22 +71,14 @@ mkdir "C:\TCAPP-Bin"
 copy "build/exe/tca++_x86.exe" "C:\TCAPP-Bin"
 ```
 
-To update the system PATH, run the following command in a **new Command Prompt window opened as Administrator**.
-
-**Important:** The `setx` command has a 1024-character limit. If your PATH is already very long, this command might truncate it. It is strongly recommended to back up your current PATH first by running `echo %PATH%`.
-
-```cmd
-setx /M PATH "%PATH%;C:\TCAPP-Bin"
-```
-
-If the command fails or you prefer a graphical interface:
+Edit PATH variable:
 - Open the Start Menu, search for "Edit the system environment variables", and press Enter.
 - Click the "Environment Variables..." button in the System Properties window.
 - In the "System variables" section, locate and select the `Path` variable, then click "Edit...".
 - Click "New" and add `C:\TCAPP-Bin` to the list.
 - Click OK on all open windows to save the changes. A system restart may be required for changes to take full effect.
 
-To verify the installation, open a **new** terminal/CMD window and run:
+To verify the installation, open a **new** CMD window and run:
 ```bash
 tca++ --help
 ```
@@ -106,8 +100,8 @@ The basic usage in a terminal is:
 
 ## Configuration Guide
 
-You can configure your CPU's architecture by editing the `include/Architecture.hpp` file. Comprehensive comments within the file also provide guidance. It is crucial not to remove the `#include` directives or variable definitions; only edit the content inside the `{}` brackets or remove content within those brackets.
-The default configuration is based on the original Turing Complete architecture (+ RAM address).
+You can configure your CPU's architecture by editing the `include/Architecture.hpp` file. Comprehensive comments within the file also provide guidance. Dont remove the `#include` lines or variable definitions; only edit the content inside the `{}` brackets or remove content within those brackets.
+The default configuration is based on the original Turing Complete 8 bit architecture (+ RAM address).
 
 ### Global Architecture Settings
 
@@ -119,15 +113,19 @@ The default configuration is based on the original Turing Complete architecture 
 Define your CPU's instructions in the `KEYWORDS` map. The format is as follows:
 
 ```cpp
-// Example entry in the KEYWORDS map...
-{
-    "NAME", // The assembly name of the command
-    {
-        {"binary", "01"},       // The binary opcode for this command
-        {"arg_count", "1"},     // The number of arguments the command takes
-        {"valid_args", "int"}   // The types of arguments it accepts
-    }
-},
+.... KEYWORDS = {
+
+        {
+            "NAME", // The assembly name of the command
+            {
+                {"binary", "01"},       // The binary opcode for this command
+                {"arg_count", "1"},     // The number of arguments the command takes
+                {"valid_args", "int"}   // The types of arguments it accepts
+            }
+        },
+
+        // Other keywords...
+}
 ```
 
 - `"NAME"`: The mnemonic name of the instruction (e.g., "MOV", "ADD").
@@ -140,14 +138,18 @@ Define your CPU's instructions in the `KEYWORDS` map. The format is as follows:
 If your instructions utilize named arguments (such as registers or condition codes), define them in the `ARGS` map.
 
 ```cpp
-// Example entry in the ARGS map...
-{
-    "set_name", // A unique name for this argument set (e.g., "reg", "cond")
-    {
-        {"arg1_name", "000"}, // An argument's assembly name and its binary representation
-        {"arg2_name", "001"}
-    }
-},
+.... ARGS = {
+
+        {
+            "set_name", // A unique name for this argument set (e.g., "reg", "cond")
+            {
+                {"arg1_name", "000"}, // An argument's assembly name and its binary representation
+                {"arg2_name", "001"}
+            }
+        },
+
+        // Other argument sets
+}
 ```
 
 - `"set_name"`: A unique identifier for the argument set (e.g., "reg" for registers, "cond" for condition flags). This name is then used in the `valid_args` field of your commands in the `KEYWORDS` map.
