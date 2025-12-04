@@ -103,7 +103,7 @@ uint64_t mk_int_arg(string &arg) {
 
         // TODO: Add support for signed binary
         if (intarg < 0) {
-                cerr << ERROR << "Signed binary(negative int) not supported (for now)";
+                cerr << ERROR << "Signed binary(negative int) not supported (for now)\n";
                 exit(1);
         }
 
@@ -163,7 +163,7 @@ string mk_binary(vector<string> &splitted, const map<string, string> &keyword, s
         }
 
         if (binary_code.size() != INSTRUCTION_SIZE) {
-                cerr << ERROR << "Error in architecture or args. Binary command is too long. Command: " << code << endl;
+                cerr << ERROR << "Error in architecture or because of args. Binary command is too long. Command: " << code << endl;
                 exit(1);
         }
         

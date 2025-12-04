@@ -2,6 +2,9 @@ WINCC_X86=x86_64-w64-mingw32-g++
 WINCC_X64=i686-w64-mingw32-g++
 CC=g++
 
+.PHONY: all clean test build-all windows-build linux-build
+
+
 ifeq ($(OS),Windows_NT)
     SHELL := "C:\Program Files\Git\bin\bash.exe"
 else
@@ -44,10 +47,7 @@ linux-build:
 ############################################################################################################################
 
 test:
-
-	@$(SHELL) -c "mkdir build/test"
-
-	@$(SHELL) -c 'echo -e "> TEST  -\t\t\t[    RUNNING    ]'
+	@$(SHELL) -c "mkdir -p build/test"
 
 	@$(SHELL) -c 'g++ src/functions.cpp test/test_main.cpp -o build/test/test -pthread -lgtest -lgtest_main'
 
