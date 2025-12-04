@@ -17,9 +17,6 @@
 
 using namespace std;
 
-string output = "program";
-string output_type = "binary";
-
 const string ERROR = "\033[0;31mE:\033[0m ";
 const string WARNING = "\033[0;33mW:\033[0m ";
 const string SUCCESS = "\033[0;32mS:\033[0m ";
