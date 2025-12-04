@@ -1,175 +1,159 @@
-# TCA++ | A Custom Assembler for your CPU
+# TCA++ | A Custom Assembler for Your CPU
 
-TCA++ is a assembler for all architectures.
-Mainly made for Turing Complete game.
-If you made an cpu yourself and want to write programs for it you can use this assembler
+TCA++ is an assembler for all architectures, primarily developed for the game Turing Complete. If you have designed your own CPU and wish to write programs for it, this assembler can be a valuable tool.
 
-## Install
+## Installation
 
-For installing you should compiler from source code you need:
+To install TCA++ by compiling from source, you will need the following prerequisites:
 
 - `make`
 - A C++ compiler:
-        - `g++` for Linux
-        - `MinGW` for Windows
+  - `g++` for Linux
+  - `MinGW` for Windows
 - `git`
 
-##### Building
+### Building from Source
 
-1. First get source code
-        ```bash
-        git clone https://github.com/HasanAgitUnal/TCA-PlusPlus tcapp
-        cd tcapp
-        ```
+1.  First, clone the source code from GitHub:
+    ```bash
+    git clone https://github.com/HasanAgitUnal/TCA-PlusPlus tcapp
+    cd tcapp
+    ```
 
-2. Configure `include/Architecture.hpp` file for your CPU architecture
-        Open `include/Architecture.hpp` with any text editor
-        See [here](#configuring) for configuring guide
+2.  Configure the `include/Architecture.hpp` file for your specific CPU architecture. Refer to the [Configuration Guide](#configuration-guide) below for detailed instructions.
 
-3. Compile it
-        Make sure you downlaoded MinGW compiler on windows. Otherwise it wont work.
+3.  Compile the project:
+    *Note: On Windows, ensure you have the MinGW compiler downloaded and accessible from your terminal.*
 
-        Windows:
-        ```bash
-        make windows
-        ```
+    For Windows:
+    ```bash
+    make windows
+    ```
 
-        Linux:
-        ```bash
-        make linux
-        ```
+    For Linux:
+    ```bash
+    make linux
+    ```
 
-4. Adding to path
-        Now you have tca++ under build folder
-        For using add you should add it to the os path
+### Adding to PATH
 
-        For linux just run this command:
-        ```bash
-        mkdir -p ~/.local/bin
-        cp build/linux/tca++ ~/.local/bin
-        ```
+After a successful build, the executable will be located in the `build` folder. To use `tca++` from any directory, you should add its location to your operating system's PATH environment variable.
 
-        and add this to your .bashrc
-        ```bash
-        export PATH='$HOME/.local/bin':$PATH
-        ```
+#### For Linux
 
-        On Windows open cmd and copy this:
-        If your computer 64-bit:
-        ```bash
-        mkdir "C:\TCAPP-Bin"
-        copy "build/exe/tca++_x64.exe" "C:\TCAPP-Bin"
-        ```
+1.  Copy the executable to a standard binary directory:
+    ```bash
+    mkdir -p ~/.local/bin
+    cp build/linux/tca++ ~/.local/bin
+    ```
 
-        If your computer is 32-bit:
-        ```
-        mkdir "C:\TCAPP-Bin"
-        copy "build/exe/tca++_x86.exe" "C:\TCAPP-Bin"
-        ```
+2.  Add this directory to your PATH by editing your shell's configuration file (e.g., `.bashrc`, `.zshrc`):
+    ```bash
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+    source ~/.bashrc
+    ```
 
-        For updating path windows is shittiy on terminal if command under there works run it as in a new cmd windows as **administrator**:
-        ```bash
-        setx /M PATH "%PATH%;C:\TCAPP-Bin"
-        ```
+#### For Windows
 
-        Then test in a new cmd window:
-        ```bash
-        tca++ --help
-        ```
-        If says command doesnt exists you should modify path from GUI
-        For doing it:
-        - Open start menu and search for "environment variables" and press enter.
-        - At the opened popup click "Environment Variables" at bottom-right
-        - Then chose Path under system variables and click edit
-        - Click New and enter this: `C:\TCAPP-Bin`
-        - Click OK -> OK -> Appyly -> OK
-        - May need restart after that
+Open Command Prompt (CMD) and execute the appropriate commands:
 
-        You should successfuly updated your path
-        Test in a new terminal window:
-        ```bash
-        tca++ --help
-        ```
+If your computer is 64-bit:
+```bash
+mkdir "C:\TCAPP-Bin"
+copy "build/exe/tca++_x64.exe" "C:\TCAPP-Bin"
+```
 
-        If it shouldnt say command not found or something similar
+If your computer is 32-bit:
+```
+mkdir "C:\TCAPP-Bin"
+copy "build/exe/tca++_x86.exe" "C:\TCAPP-Bin"
+```
+
+To update the system PATH, run the following command in a **new Command Prompt window opened as Administrator**.
+
+**Important:** The `setx` command has a 1024-character limit. If your PATH is already very long, this command might truncate it. It is strongly recommended to back up your current PATH first by running `echo %PATH%`.
+
+```cmd
+setx /M PATH "%PATH%;C:\TCAPP-Bin"
+```
+
+If the command fails or you prefer a graphical interface:
+- Open the Start Menu, search for "Edit the system environment variables", and press Enter.
+- Click the "Environment Variables..." button in the System Properties window.
+- In the "System variables" section, locate and select the `Path` variable, then click "Edit...".
+- Click "New" and add `C:\TCAPP-Bin` to the list.
+- Click OK on all open windows to save the changes. A system restart may be required for changes to take full effect.
+
+To verify the installation, open a **new** terminal/CMD window and run:
+```bash
+tca++ --help
+```
+If you do not receive a "command not found" error, the installation was successful.
 
 ## Usage
 
-You can also see usage with `tca++ --help`
+You can view all available options by running `tca++ --help`.
 
-Use in terminal: `tca++ FILES [-o OUTPUT] [-t OTYPE]` 
+The basic usage in a terminal is:
+`tca++ FILES [-o OUTPUT] [-t OTYPE]`
 
-- `-o OUTPUT` : Output file (default: program)
-- `-t OTYPE`  : Output type (default: binary)
-- Supported OTYPEs:
-        - `binary` : normal binary file (non-readable)
-        - `text-binary` : a text file contains 0s and 1s
-        - `hexadecimal` : a text file contains hexadecimal values
+- `-o OUTPUT`: Specifies the output file name (default: `program`).
+- `-t OTYPE`: Specifies the output type (default: `binary`).
+  - **Supported OTYPEs:**
+    - `binary`: Generates a raw binary file (non-human-readable).
+    - `text-binary`: Creates a text file containing '0's and '1's representing the binary code.
+    - `hexadecimal`: Produces a text file containing the hexadecimal representation of the binary code.
 
-## Configuring
+## Configuration Guide
 
-Configuring the Architecture.hpp file.
-You can also read the comments in the file
-Dont remove `#include` lines and variable definitions just edit varible content inside `{}` brackets or remove inside them
-Default config is made according to the Turing Completes original architecture (+ RAM adress)
+You can configure your CPU's architecture by editing the `include/Architecture.hpp` file. Comprehensive comments within the file also provide guidance. It is crucial not to remove the `#include` directives or variable definitions; only edit the content inside the `{}` brackets or remove content within those brackets.
+The default configuration is based on the original Turing Complete architecture (+ RAM address).
 
-###### Small Varibles
+### Global Architecture Settings
 
-- `INSTRUCTION_SIZE` : Instruction size for your commands
-- `MAX_INT_SIZE` : Maximum integer argument bit size for commands
+- `INSTRUCTION_SIZE`: The total size of a single instruction, in bits.
+- `MAX_INT_SIZE`: The maximum bit size for an integer argument.
 
-##### Command Opcodes
+### Command Opcodes (`KEYWORDS`)
 
-- Define them in `KEYWORDS` variable
-- Format should be like:
-        ```json
-        ...... KEYWORDS = {
-                {
-                        "NAME",
-                        {
-                                {"binary", "01"},
-                                {"arg_count", "1"},
-                                {"valid_args", "int"}
-                        }
-                },
+Define your CPU's instructions in the `KEYWORDS` map. The format is as follows:
 
-                // Other commands...
-        }
-        ```
-
-        - `"NAME"` : Name of the command
-        - `"binary"` : Value is your command opcode. If your command is doesnt takes arguments just enter full binary representation. or have spaces between arg enter opcode with the spaces ( as 0s ).
-        - `"arg_count"` : Argument count of command
-        - `"valid_args"` : Valid argument sets for arguments. see below for defining arg sets. You dont need to define int arg set it means integer already. you can use more than one arg set seperate them with `|` character. For example : "reg|int"
-
-- You can now use NAME command like:
-```asm
-NAME 30  ; it will be 01011110
+```cpp
+// Example entry in the KEYWORDS map...
+{
+    "NAME", // The assembly name of the command
+    {
+        {"binary", "01"},       // The binary opcode for this command
+        {"arg_count", "1"},     // The number of arguments the command takes
+        {"valid_args", "int"}   // The types of arguments it accepts
+    }
+},
 ```
 
-##### Argument Sets
+- `"NAME"`: The mnemonic name of the instruction (e.g., "MOV", "ADD").
+- `"binary"`: The base binary opcode for the instruction. The assembler concatenates this opcode with the binary representation of the arguments to form the final instruction. For example, if the opcode is `01` and the arguments' binary is `110110`, the final instruction will be `01110110`.
+- `"arg_count"`: The number of arguments the command takes. This must be `"0"` for commands that do not accept any arguments.
+- `"valid_args"`: Defines the allowed types of arguments. You can specify multiple argument sets by separating them with a `|` character (e.g., `"reg|addr"`). The `int` type is built-in and does not require explicit definition in the `ARGS` map; it signifies that the command expects an integer value as an argument.
 
-- Define them `ARGS` variable
-- Format should be like:
-        ```json
-        ...... ARGS = {
-                {
-                        "set_name",
-                        {
-                                {"a1", "000"},
-                                {"a2", "001"}
-                        }
-                },
+### Argument Sets (`ARGS`)
 
-                // Other sets
-        }
-        ```
+If your instructions utilize named arguments (such as registers or condition codes), define them in the `ARGS` map.
 
-        - `"set_name"` : Name of the arg set
-        - `{"a1", "001"}` : arg name and binary representation
-
-- Now you can use the `set_name` arg set in your `KEYWORDS` varible. and use with commands:
-```asm
-EXAMPLE a1
+```cpp
+// Example entry in the ARGS map...
+{
+    "set_name", // A unique name for this argument set (e.g., "reg", "cond")
+    {
+        {"arg1_name", "000"}, // An argument's assembly name and its binary representation
+        {"arg2_name", "001"}
+    }
+},
 ```
 
+- `"set_name"`: A unique identifier for the argument set (e.g., "reg" for registers, "cond" for condition flags). This name is then used in the `valid_args` field of your commands in the `KEYWORDS` map.
+- `{"arg1_name", "001"}`: Represents an individual argument within the set, with its assembly name and corresponding binary value.
+
+Once defined, you can use these argument sets in your commands. For example:
+```asm
+EXAMPLE arg1_name
+```
