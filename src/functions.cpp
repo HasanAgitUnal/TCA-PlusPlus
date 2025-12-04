@@ -99,6 +99,11 @@ uint64_t mk_int_arg(string &arg) {
                 exit(1);
         }
 
+        if (MAX_INT_SIZE > 64) {
+                cerr << ERROR << "Error in Archtitecture. More than 64 bit integer not supported"
+                exit(1);
+        }
+
         uint64_t uarg = static_cast<uint64_t>(intarg);
         uint64_t maxInt = (MAX_INT_SIZE == 64) ? UINT64_MAX : (1ULL << MAX_INT_SIZE) - 1;
 

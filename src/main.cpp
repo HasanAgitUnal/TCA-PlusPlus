@@ -33,11 +33,11 @@ int main (int argc, char* argv[]) {
         ArgParser args(argc, argv);
 
         if (args.hasFlag("--help")) {
-                cout << "Turing Complete Assempler++ - v0.0.1.2\n\n"
+                cout << "Turing Complete Assempler++ - v0.1\n\n"
                      << "Usage: tca++ FILE [OPTIONS]\n\n"
                      << "OPTIONS:\n"
                      << "       --help, -h :     Show this message\n"
-                     << "       -o FILE    :     Output destination\n"
+                     << "       -o FILES    :     Output destination\n"
                      << "       -t OTYPE   :     Output type\n\n"
                      << "OTYPE:\n"
                      << "       binary     :     Default output type\n"

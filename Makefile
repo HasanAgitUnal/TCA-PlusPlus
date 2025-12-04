@@ -1,5 +1,5 @@
-WINCC_X86=x86_64-w64-mingw32-g++
-WINCC_X64=i686-w64-mingw32-g++
+WINCC_X64=x86_64-w64-mingw32-g++
+WINCC_X86=i686-w64-mingw32-g++
 CC=g++
 
 .PHONY: all clean test build-all windows-build linux-build

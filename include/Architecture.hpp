@@ -10,7 +10,12 @@ using namespace std;
 
 // Define everything about your architecture here
 
+// Instruction size
 inline const int INSTRUCTION_SIZE = 8;
+
+// Maximum integer bit wide
+// For example 6 means an integer should be 6 bits like 011010 and maximum value is 63
+// WARNING: Dont make it more than 64
 inline const int MAX_INT_SIZE = 6;
 
 /*
@@ -90,7 +95,7 @@ inline const map<string, map<string, string>> KEYWORDS = {
 	{
 	    {"binary", "01000"},
 	    {"arg_count", "1"},
-	    {"valid_args", "oppr"} 
+	    {"valid_args", "oppr"}
 	}
     },
     {
@@ -103,7 +108,7 @@ inline const map<string, map<string, string>> KEYWORDS = {
     },
     {
 	"JMP",
-	{	
+	{
 	    {"binary", "11000100"},
 	    {"arg_count", "0"}
 	}
