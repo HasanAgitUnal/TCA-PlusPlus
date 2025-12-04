@@ -7,10 +7,10 @@ TCA++ is an assembler for all architectures, primarily developed for the game Tu
 To install TCA++ by compiling from source, you will need the following prerequisites:
 
 - `make`
+- `git`
 - A C++ compiler:
   - `g++` for Linux
   - `MinGW` for Windows
-- `git`
 
 ### Building from Source
 
