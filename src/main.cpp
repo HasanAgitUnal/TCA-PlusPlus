@@ -14,13 +14,8 @@
 
 using namespace std;
 
-string output = "program";
-string output_type = "binary";
-
-const string ERROR = "\033[0;31mE:\033[0m ";
-const string WARNING = "\033[0;33mW:\033[0m ";
-const string SUCCESS = "\033[0;32mS:\033[0m ";
-const string INFO = "I: ";
+const string DEFAULT_OUTPUT = "program";
+const string DEFAULT_OTYPE = "binary";
 
 int main (int argc, char* argv[]) {
         if (MAX_INT_SIZE > 64 || MAX_INT_SIZE < 1) {
@@ -39,7 +34,7 @@ int main (int argc, char* argv[]) {
 
         if (args.hasFlag("--help")) {
                 cout << "Turing Complete Assempler++ - v0.0.1.2\n\n"
-                     << "Usage: tca++ code.asm OPTIONS\n\n"
+                     << "Usage: tca++ FILE [OPTIONS]\n\n"
                      << "OPTIONS:\n"
                      << "       --help, -h :     Show this message\n"
                      << "       -o FILE    :     Output destination\n"
@@ -54,8 +49,9 @@ int main (int argc, char* argv[]) {
                 return 0;
         }
 
+        string output;
         string opt = args.getOption("-o");
-        if (!opt.empty()) output = opt;
+        if (!opt.empty()) { output = opt; } else { output = DEFAULT_OUTPUT; };
 
         vector<string> inputs = args.getPositional();
 
@@ -64,14 +60,17 @@ int main (int argc, char* argv[]) {
                 return 1;
         }
 
-        output_type = args.getOption("-t");
 
-        if (output_type != "binary" && output_type != "text-binary" && output_type != "hex") {
-                cout << ERROR << "Invalid output type: " << output_type << endl;
+        opt = args.getOption("-t");
+        string otype;
+        if (!opt.empty()) { otype = opt; } else { otype = DEFAULT_OTYPE; };
+
+        if (otype != "binary" && otype != "text-binary" && otype != "hex") {
+                cout << ERROR << "Invalid output type: " << otype << endl;
                 return 1;
         }
 
-        if (INSTRUCTION_SIZE > 64 && output_type == "hex") {
+        if (INSTRUCTION_SIZE > 64 && otype == "hex") {
                 cerr << ERROR << "Hex output type not supported for architectures over 64-bit instructions.\n";
                 return 1;
         }
@@ -88,11 +87,11 @@ int main (int argc, char* argv[]) {
         // Prepare the output
         vector<uint8_t> output_data;
 
-        if (output_type == "text-binary") {
+        if (otype == "text-binary") {
                 string text_binary = sep_bin(binaryCommands);
                 output_data.assign(text_binary.begin(), text_binary.end());
 
-        } else if (output_type == "binary") {
+        } else if (otype == "binary") {
                 output_data = convert_bin(binaryCommands);
 
         } else { // Hexadecimal

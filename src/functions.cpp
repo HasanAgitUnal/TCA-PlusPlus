@@ -17,11 +17,6 @@
 
 using namespace std;
 
-const string ERROR = "\033[0;31mE:\033[0m ";
-const string WARNING = "\033[0;33mW:\033[0m ";
-const string SUCCESS = "\033[0;32mS:\033[0m ";
-const string INFO = "I: ";
-
 // merges 2 map<K, V>
 template <typename K, typename V>
 map<K, V> mergeMap(const map<K, V> &dest, const map<K, V> &src) {
