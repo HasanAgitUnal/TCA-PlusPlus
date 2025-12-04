@@ -136,8 +136,8 @@ TEST(MkBinaryFunc, TestJob) {
         );
 
         EXPECT_EQ(
-                mk_binary(S3, K2, C2),
-                E2
+                mk_binary(S3, K3, C3),
+                E3
         );
 
 
