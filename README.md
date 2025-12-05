@@ -1,6 +1,7 @@
 # TCA++ | A Custom Assembler for Your CPU
 
 TCA++ is an assembler for all architectures, primarily developed for the game Turing Complete. If you have designed your own CPU and need an assembler, this might be it.
+
 Licensed under the GNU Affero General Public License v3.0 (AGPLv3). See the [LICENSE](LICENSE) file for the details.
 
 ## Installation
