@@ -4,9 +4,22 @@ TCA++ is an assembler for all architectures, primarily developed for the game Tu
 
 Licensed under the GNU Affero General Public License v3.0 (AGPLv3). See the [LICENSE](LICENSE) file for the details.
 
+## Content Table
+
+- [Installation](#installation)
+  - [Building from Source](#building-from-source)
+  - [Adding to PATH](#adding-to-path)
+- [Usage](#usage)
+- [Example](#example)
+- [Configuration Guide](#configuration-guide)
+  - [Global Architecture Settings](#global-architecture-settings)
+  - [Command Opcodes (KEYWORDS)](#command-opcodes-keywords)
+  - [Argument Sets (ARGS)](#argument-sets-args)
+
+
 ## Installation
 
-To install TCA++ by compiling from source, you will need the following prerequisites:
+To install TCA++, you should compile from source, you will need the following prerequisites:
 
 - `make`
 - `git`
@@ -43,7 +56,7 @@ To install TCA++ by compiling from source, you will need the following prerequis
 
 For using `tca++` command you should add it to the PATH environment variable.
 
-#### For Linux
+##### For Linux
 
 1.  Copy the executable to a standard binary directory:
     ```bash
@@ -57,7 +70,7 @@ For using `tca++` command you should add it to the PATH environment variable.
     source ~/.bashrc
     ```
 
-#### For Windows
+##### For Windows
 
 Open CMD and execute the appropriate commands:
 
@@ -99,6 +112,39 @@ The basic usage in a terminal is:
     - `binary`: Generates a raw binary file (non-human-readable).
     - `text-binary`: Creates a text file containing '0's and '1's representing the binary code.
     - `hexadecimal`: Produces a text file containing the hexadecimal representation of the binary code.
+
+## Example
+
+There is a code example for default config:
+
+```asm
+; Loop addition code example
+
+; load R1 register
+MVI 5 ; MVI command uses R0 as save location
+MOV R0 R1
+
+; load R2 register
+MVI 3
+MOV R0 R2
+
+; add R1 and R2 register . OPPR command uses R1 and R2 as input and R3 as output
+OPPR ADD
+
+; Load R1 with result value
+MOV R3 R1
+
+; Jump for making it a loop
+MVI 2 ; skip R1 loading for not resetting
+JMP ; jmp to address at R0
+
+; this will be run enddless
+```
+
+For assembling it:
+```asm
+tca++ loop_add.asm -o loop_add
+```
 
 ## Configuration Guide
 
