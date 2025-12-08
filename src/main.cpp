@@ -19,108 +19,146 @@
 #include <filesystem>
 #include <vector>
 #include <string>
+#include <nlohmann/json.hpp>
 
 #include <cstdint>
 
 #include "../include/functions.hpp"
 #include "../include/ArgParser.hpp"
 
-// TODO: Remove this header file and load architecture from json files and with this compiler will doesnt need recompiling on architecture errors
-#include "../include/Architecture.hpp"
+using json = nlohmann::json;
 
-using namespace std;
 
-const string DEFAULT_OUTPUT = "program";
-const string DEFAULT_OTYPE = "binary";
+const std::string DEFAULT_OUTPUT = "program";
+const std::string DEFAULT_OTYPE = "binary";
+const std::string DEFAULT_ARCH_FILE = getConfigPath();
 
 int main (int argc, char* argv[]) {
-        if (MAX_INT_SIZE > 64 || MAX_INT_SIZE < 1) {
-                cout << "\033[0;21mFATAL ERROR: Error in architecture MAX_INT_SIZE should be in range: 1-64.\n";
-                return 1;
-        }
-
-        if (INSTRUCTION_SIZE % 8 != 0) {
-                cout << "\033[0;21mFATAL ERROR: Error in architecture INSTRUCTION_SIZE should be multiple of 8.\n";
-                return 1;
-        }
-
+        
         // handle cli args
-        // TODO: Delete the ArgParser.hpp file and recode it (dont use AI!!!!)
+        // TODO: Delete the ArgParser.hpp file (dont use AI!!!!)
         ArgParser args(argc, argv);
 
         if (args.hasFlag("--help")) {
-                cout << "Turing Complete Assempler++ - v0.1\n\n"
-                     << "Usage: tca++ FILE [OPTIONS]\n\n"
-                     << "OPTIONS:\n"
-                     << "       --help, -h :     Show this message\n"
-                     << "       -o FILES    :     Output destination\n"
-                     << "       -t OTYPE   :     Output type\n\n"
-                     << "OTYPE:\n"
-                     << "       binary     :     Default output type\n"
-                     << "       text-binary:     Binary as text 0s and 1s\n"
-                     << "       hex        :     Hexadecimal text\n\n"
-                     << "NOTE:\n"
-                     << "	If you get an error caused by architecture. You should fix error in Architecture.hpp in source code and rebuild compiler.\n";
+                std::cout    << "Turing Complete Assempler++ - v0.2\n\n"
+                        << "Usage: tca++ FILES [OPTIONS]\n\n"
+                        << "OPTIONS:\n"
+                        << "\t--help, -h  :\tShow this message\n"
+                        << "\t-o FILES    :\tOutput destination\n"
+                        << "\t-t OTYPE    :\tOutput type\n"
+                        << "\t-a ARCH     :\tThe architecture json file\n\n"
+                        << "OTYPE:\n"
+                        << "\tbinary      :\tDefault output type\n"
+                        << "\ttext-binary :\tBinary as text 0s and 1s\n"
+                        << "\thex         :\tHexadecimal text\n\n"
+                        << "ARCH:\n"
+                        << "\tLoad architecture from given json file if not specified default values will be used for os:\n"
+                        << "\tWindows: C:\\Users\\<USER>\\AppData\\Roaming\\TCAPP\\architecture.json\n"
+                        << "\tLinux  : /home/USER/.config/TCAPP/architecture.json\n\n"
+                        << "NOTE:\n"
+                        << "	If you get an error caused by architecture. You should fix error in Architecture.hpp in source code and rebuild compiler.\n";
 
                 return 0;
         }
 
-        string output;
-        string opt = args.getOption("-o");
-        if (!opt.empty()) { output = opt; } else { output = DEFAULT_OUTPUT; };
-
-        vector<string> inputs = args.getPositional();
+        // FILES
+        std::vector<std::string> inputs = args.getPositional();
 
         if (inputs.size() == 0) {
-                cout << ERROR << "no input files given.\n";
+                std::cout << ERROR << "no input files given.\n";
                 return 1;
         }
 
+        // -o OUTPUT
+        std::string output;
+        std::string opt = args.getOption("-o");
+        if (!opt.empty()) { output = opt; } else { output = DEFAULT_OUTPUT; };
 
+        // -t OTYPE
         opt = args.getOption("-t");
-        string otype;
+        std::string otype;
         if (!opt.empty()) { otype = opt; } else { otype = DEFAULT_OTYPE; };
-
+        
         if (otype != "binary" && otype != "text-binary" && otype != "hex") {
-                cout << ERROR << "Invalid output type: " << otype << endl;
+                std::cout << ERROR << "Invalid output type: " << otype << std::endl;
+                return 1;
+        }
+
+        // -a ARCH
+        std::string arch_path;
+        opt = args.getOption("-a");
+        if (!opt.empty()) { arch_path = opt; } else { arch_path = DEFAULT_ARCH_FILE; }
+        
+        std::string arch_content = read_file(arch_path);
+        
+        json arch;
+        int INSTRUCTION_SIZE;
+        int MAX_INT_SIZE;
+        json KEYWORDS;
+        json ARGS;
+        try {
+                arch = json::parse(arch_content);
+                INSTRUCTION_SIZE = arch.at("instruction_size").get<int>();
+                MAX_INT_SIZE = arch.at("max_int_size").get<int>();
+                KEYWORDS = arch.at("keywords");
+                ARGS = arch.at("arg_sets");
+
+        } catch (const json::exception& e) {
+                std::cerr << ERROR << "Failed to parse or required keys are not found in json file: " << arch_path << "\n"
+                          << "\tReason: " << e.what() << std::endl;
+                return 1;
+        }
+
+        if (!KEYWORDS.is_array() || !ARGS.is_array()) {
+                std::cerr << ERROR << "Error in config file: \"keywords\" or \"arg_sets\" not an json array\n";
+                return 1;
+        }
+
+        if (MAX_INT_SIZE > 64 || MAX_INT_SIZE < 1) {
+                std::cerr << ERROR << "FATAL ERROR: Error in architecture MAX_INT_SIZE should be in range: 1-64.\n";
+                return 1;
+        }
+
+        if (INSTRUCTION_SIZE % 8 != 0) {
+                std::cerr << ERROR << "FATAL ERROR: Error in architecture INSTRUCTION_SIZE should be multiple of 8.\n";
                 return 1;
         }
 
         if (INSTRUCTION_SIZE > 64 && otype == "hex") {
-                cerr << ERROR << "Hex output type not supported for architectures over 64-bit instructions.\n";
+                std::cerr << ERROR << "Hex output type not supported for architectures over 64-bit instructions.\n";
                 return 1;
         }
 
         // Read and add files end to end
-        string fileContents = read_files(inputs);
+        std::string fileContents = read_files(inputs);
 
         // Split lines and remove comments and empty lines
-        vector<string> codelines = split_and_clean(fileContents);
+        std::vector<std::string> codelines = split_and_clean(fileContents);
 
         // Parse code
-        vector<string> binaryCommands = parse_code(codelines);
+        std::vector<std::string> binaryCommands = parse_code(codelines, ARGS, KEYWORDS, INSTRUCTION_SIZE, MAX_INT_SIZE);
 
         // Prepare the output
-        vector<uint8_t> output_data;
+        std::vector<uint8_t> output_data;
 
         if (otype == "text-binary") {
-                string text_binary = sep_bin(binaryCommands);
+                std::string text_binary = sep_bin(binaryCommands);
                 output_data.assign(text_binary.begin(), text_binary.end());
 
         } else if (otype == "binary") {
                 output_data = convert_bin(binaryCommands);
 
         } else { // Hexadecimal
-                string hexadecimal_text = convert_hex(binaryCommands);
+                std::string hexadecimal_text = convert_hex(binaryCommands, INSTRUCTION_SIZE);
                 output_data.assign(hexadecimal_text.begin(), hexadecimal_text.end());
         }
 
         // Write output file
-        ofstream out(output, ios::binary);
+        std::ofstream out(output, std::ios::binary);
         out.write(reinterpret_cast<const char*>(output_data.data()), output_data.size());
         out.close();
 
-        cout << SUCCESS << "Build completed. output file generated at: \"" << filesystem::absolute(output).string() << "\"\n";
+        std::cout << SUCCESS << "Build completed. output file generated at: \"" << std::filesystem::absolute(output).string() << "\"\n";
 
         return 0;
 }

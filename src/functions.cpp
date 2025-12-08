@@ -14,40 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifdef _WIN32
+#include <windows.h>
+#include <shlobj.h>
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <vector>
 #include <string>
-#include <map>
 #include <bitset>
 
 #include <cstdint>
 #include <cstdlib>
 
-#include "../include/functions.hpp"
+#include <nlohmann/json.hpp>
 
-// TODO: Remove this header file and load architecture from json files and with this compiler will doesnt need recompiling on architecture errors
-#include "../include/Architecture.hpp"
+#include "../include/functions.hpp" // get message mods
 
-using namespace std;
+using json = nlohmann::json;
 
-// merges 2 map<K, V>
-template <typename K, typename V>
-map<K, V> mergeMap(const map<K, V> &dest, const map<K, V> &src) {
-    map<K, V> result = dest;
-    result.insert(src.begin(), src.end());
-    return result;
+std::string getConfigPath() {
+
+#ifdef _WIN32
+    // Windows
+    char path[MAX_PATH];
+    if (SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, path) != S_OK) {
+        return "";
+    }
+    return std::string(path) + "\\tcapp";
+#else
+    // Linux
+    return std::string(getenv("HOME")) + "/.config/tcapp";
+#endif
+
 }
 
 // splits str by delim seperator
-vector<string> split(const string& str, char delim) {
-        vector<string> items;
-        stringstream ss(str);
-        string item;
+std::vector<std::string> split(const std::string& str, char delim) {
+        std::vector<std::string> items;
+        std::stringstream ss(str);
+        std::string item;
 
-        while (getline(ss, item, delim))
+        while (std::getline(ss, item, delim))
                 if (!item.empty()) {
                         items.push_back(item);
                 }
@@ -56,39 +67,50 @@ vector<string> split(const string& str, char delim) {
 }
 
 // cleans string from whitespace
-string strip(const string& str) {
+std::string strip(const std::string& str) {
     size_t start = str.find_first_not_of(" \t\n\r\f\v");
-    if (start == string::npos) return "";
+    if (start == std::string::npos) return "";
     size_t end = str.find_last_not_of(" \t\n\r\f\v");
     return str.substr(start, end - start + 1);
 }
 
-// Read given files, add end to and and return as a string
-string read_files(vector<string> &files) {
-        string readed;
+// Read single file
+std::string read_file(std::string &f) {
+        std::ifstream file(f);
 
-        for (string& filename : files) {
-                ifstream file(filename);
+        if (!file.is_open() && getConfigPath() != f) {
+                std::cerr << ERROR << "Cant read file: " << f << std::endl;
+                exit(1);
 
-                if (!file.is_open()) {
-                        cerr << ERROR << "Cant read file: " << filename << endl;
-                        exit(1);
-                }
+        } else if (!file.is_open()) { // Reading default config file
+                std::cerr << ERROR << "No config file found or cant read it. Use tca++ --help to see config location";
+                exit(1);
+        }
 
-                stringstream buffer;
-                buffer << file.rdbuf();
-                readed += "\n" + buffer.str();
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+
+        return buffer.str();
+}
+
+// Read given files, add end to and and return as a std::string
+std::string read_files(std::vector<std::string> &files) {
+        std::string readed;
+
+        for (std::string& filename : files) {
+                readed += "\n" + read_file(filename);
         }
 
         return readed;
 }
 
-// split str by newlines and remove comments which starts with ';' for every line. skip empty lines 
-vector<string> split_and_clean(string &str) {
-        vector<string> lines = split(str, '\n');
-        vector<string> result;
 
-        for (string& line : lines) {
+// split str by newlines and remove comments which starts with ';' for every line. skip empty lines 
+std::vector<std::string> split_and_clean(std::string &str) {
+        std::vector<std::string> lines = split(str, '\n');
+        std::vector<std::string> result;
+
+        for (std::string& line : lines) {
                 line = strip(line.substr(0, line.find(';')));
 
                 if (line != "" ){
@@ -99,24 +121,24 @@ vector<string> split_and_clean(string &str) {
         return result;
 }
 
-// make int arg (but its a string) binary (uint64_t)
-uint64_t mk_int_arg(string &arg) {
+// make int arg (but its a std::string) binary (uint64_t)s
+uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE) {
         long long intarg;
         try {
-                intarg = stoll(arg);
-        } catch(const exception& e) {
-                cerr << ERROR << "Invalid argument: " << arg << endl;
+                intarg = std::stoll(arg);
+        } catch(const std::exception& e) {
+                std::cerr << ERROR << "Invalid argument: " << arg << std::endl;
                 exit(1);
         }
 
         // TODO: Add support for signed binary
         if (intarg < 0) {
-                cerr << ERROR << "Signed binary(negative int) not supported (for now)\n";
+                std::cerr << ERROR << "Signed binary(negative int) not supported (for now)\n";
                 exit(1);
         }
 
         if (MAX_INT_SIZE > 64) {
-                cerr << ERROR << "Error in Archtitecture. More than 64 bit integer not supported"
+                std::cerr << ERROR << "Error in Archtitecture. More than 64 bit integer not supported";
                 exit(1);
         }
 
@@ -124,7 +146,7 @@ uint64_t mk_int_arg(string &arg) {
         uint64_t maxInt = (MAX_INT_SIZE == 64) ? UINT64_MAX : (1ULL << MAX_INT_SIZE) - 1;
 
         if (uarg > maxInt) {
-                cerr << ERROR << "Integer is too big: " << intarg << " .Max integer for this architecture: " << maxInt << endl;
+                std::cerr << ERROR << "Integer is too big: " << intarg << " .Max integer for this architecture: " << maxInt << std::endl;
                 exit(1);
         }
 
@@ -132,42 +154,45 @@ uint64_t mk_int_arg(string &arg) {
 }
 
 // make command binary
-string mk_binary(vector<string> &splitted, const map<string, string> &keyword, string &code) {
-        string binary_code = keyword.at("binary");
+std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::string &code, json &ARGS, json &KEYWORDS, int &MAX_INT_SIZE, int &INSTRUCTION_SIZE) {
+        std::string binary_code = keyword.at("binary").get<std::string>();
 
         // if arg_count is bigger than zero add arg bytes. otherwise just command opcode will be used as binary_code
-        if ( stoi(keyword.at("arg_count")) > 0 ) {
+        if ( keyword.at("arg_count").get<int>() > 0 ) {
 
                 // Get valid args from "valid_args" value 
-                vector<string> arg_types = split(keyword.at("valid_args"), '|');
-                map<string, string> valid_args = {{"int", "0"}};
-                for (string &type : arg_types) {
+                
+                std::vector<std::string> arg_types = split(keyword.at("arg_sets").get<std::string>(), '|');
+                
+                json valid_args = {{"int", "0"}};
+                
+                for (std::string &type : arg_types) {
                         if (type != "int") {
-                                if (ARGS.find(type) == ARGS.end()) {
-                                        cerr << ERROR << "Unknown arg set in architecture: " << type << endl;
+                                if (!ARGS.contains(type)) {
+                                        std::cerr << ERROR << "Unknown arg set in architecture: " << type << std::endl;
                                         exit(1);
                                 }
 
-                                valid_args = mergeMap(valid_args, ARGS.at(type));
+                                valid_args.update(ARGS.at(type));
                         } else {
                                 valid_args["int"] = "1";
                         }
                 }
 
                 // Add argument bytes end to end
-                for (string &arg : splitted) {
+                for (std::string &arg : splitted) {
                         // skip command name
                         if (arg == splitted[0]) continue;
 
 
                         uint64_t byte_int;
-                        if (valid_args.find(arg) == valid_args.end()){
+                        if (!valid_args.contains(arg)){
                                 if (valid_args["int"] == "0") {
-                                        cerr << ERROR << "Invalid argument: " << arg << endl;
+                                        std::cerr << ERROR << "Invalid argument: " << arg << std::endl;
                                         exit(1);
                                 } else {
 
-                                        byte_int = mk_int_arg(arg);
+                                        byte_int = mk_int_arg(arg, MAX_INT_SIZE);
                                 }
                         }
 
@@ -180,7 +205,7 @@ string mk_binary(vector<string> &splitted, const map<string, string> &keyword, s
         }
 
         if (binary_code.size() != INSTRUCTION_SIZE) {
-                cerr << ERROR << "Error in architecture or because of args. Binary command is too long. Command: " << code << endl;
+                std::cerr << ERROR << "Error in architecture or because of args. Binary command is too long. Command: " << code << std::endl;
                 exit(1);
         }
         
@@ -188,32 +213,32 @@ string mk_binary(vector<string> &splitted, const map<string, string> &keyword, s
 }
 
 // Parse given codelines and return a binary sring array
-vector<string> parse_code(vector<string> &codelines) {
-        vector<string> binary_commands;
+std::vector<std::string> parse_code(std::vector<std::string> &codelines, json &KEYWORDS, json &ARGS, int &INSTRUCTION_SIZE, int &MAX_INT_SIZE) {
+        std::vector<std::string> binary_commands;
 
-        for (string& code : codelines) {
-                vector<string> splitted = split(code, ' ');
+        for (std::string& code : codelines) {
+                std::vector<std::string> splitted = split(code, ' ');
                 if (splitted.empty()) continue; // if im stupid maybe splitted be empty
 
-                if (KEYWORDS.find(splitted[0]) == KEYWORDS.end()){
-                        cerr << ERROR << "Invalid keyword: " << splitted[0] << endl;
+                if (!KEYWORDS.contains(splitted[0])){
+                        std::cerr << ERROR << "Invalid keyword: \"" << splitted[0] << "\"\n";
                         exit(1);
                 }
 
-                const map<string, string> &keyword = KEYWORDS.at(splitted[0]);
+                json &keyword = KEYWORDS.at(splitted[0]);
 
-                const string &binary = keyword.at("binary");
-                const int arg_count =  stoi(keyword.at("arg_count"));
+                const std::string &binary = keyword.at("binary").get<std::string>();
+                int arg_count =  keyword.at("arg_count").get<int>();
 
                 if (splitted.size()-1 > arg_count || splitted.size()-1 < arg_count) {
-                        cerr << ERROR << "Expected " << arg_count << " arguments but " << splitted.size()-1 << " given.\n";
+                        std::cerr << ERROR << "Expected " << arg_count << " arguments but " << splitted.size()-1 << " given.\n";
                         exit(1);
                 }
 
                 // If doesnt takes arguments just add command itself
                 if (arg_count == 0) {
                         if (binary.size() != INSTRUCTION_SIZE) {
-                                cerr << ERROR << "Error in command architecture. Command \"" << splitted[0] << "\" has invalid binary.\n";
+                                std::cerr << ERROR << "Error in command architecture. Command \"" << splitted[0] << "\" has invalid binary.\n";
                                 exit(1);
                         }
 
@@ -222,22 +247,22 @@ vector<string> parse_code(vector<string> &codelines) {
                 }
 
                 // Realy parse command
-                binary_commands.push_back(mk_binary(splitted, keyword, code));
+                binary_commands.push_back(mk_binary(splitted, keyword, code, ARGS, KEYWORDS, MAX_INT_SIZE, INSTRUCTION_SIZE));
         }
 
         return binary_commands;
 }
 
 // for example make "010" -> 2
-vector<uint8_t> convert_bin(vector<string> &binarytext) {
-        vector<uint8_t> output;
-        for (string& bin : binarytext) {
+std::vector<uint8_t> convert_bin(std::vector<std::string> &binarytext) {
+        std::vector<uint8_t> output;
+        for (std::string& bin : binarytext) {
                 for (size_t i = 0; i + 8 <= bin.size(); i += 8)
-                        output.push_back(static_cast<uint8_t>(stoul(bin.substr(i, 8), nullptr, 2)));
+                        output.push_back(static_cast<uint8_t>(std::stoul(bin.substr(i, 8), nullptr, 2)));
 
                 size_t rem = bin.size() % 8;
                 if (rem) {
-                        output.push_back(static_cast<uint8_t>(stoul(bin.substr(bin.size() - rem), nullptr, 2)));
+                        output.push_back(static_cast<uint8_t>(std::stoul(bin.substr(bin.size() - rem), nullptr, 2)));
                 }
         }
 
@@ -245,23 +270,23 @@ vector<uint8_t> convert_bin(vector<string> &binarytext) {
 }
 
 // for example make "010" -> 0x02  
-string convert_hex(vector<string> &binarytext) {
-        string hexadecimal_text;
+std::string convert_hex(std::vector<std::string> &binarytext, int &INSTRUCTION_SIZE) {
+        std::string hexadecimal_text;
 
-        for (string bin : binarytext) {
-                unsigned long long val = stoull(bin, nullptr, 2);
-                stringstream ss;
-                ss << "0x" << hex << setw(INSTRUCTION_SIZE / 4) << setfill('0') << val;
+        for (std::string bin : binarytext) {
+                unsigned long long val = std::stoull(bin, nullptr, 2);
+                std::stringstream ss;
+                ss << "0x" << std::hex << std::setw(INSTRUCTION_SIZE / 4) << std::setfill('0') << val;
                 hexadecimal_text += ss.str() + "\n";
         }
 
         return hexadecimal_text;
 }
 
-// dont look at name just makes list a string seperated with \n
-string sep_bin(vector<string> &binarytext) {
-        string output;
-        for (string bin : binarytext) {
+// dont look at name just makes list a std::string seperated with \n
+std::string sep_bin(std::vector<std::string> &binarytext) {
+        std::string output;
+        for (std::string bin : binarytext) {
                 output += bin + "\n";
         }
 

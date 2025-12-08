@@ -49,8 +49,7 @@ To install TCA++, you should compile from source, you will need the following pr
     make linux
     ```
 
-4. Adding to PATH
-    Look below for adding tca++ to the path
+
 
 ### Adding to PATH
 
@@ -138,7 +137,7 @@ MOV R3 R1
 MVI 2 ; skip R1 loading for not resetting
 JMP ; jmp to address at R0
 
-; this will be run enddless
+; this will be run endless
 ```
 
 For assembling it:
@@ -148,7 +147,7 @@ tca++ loop_add.asm -o loop_add
 
 ## Configuration Guide
 
-You can configure your CPU's architecture by editing the `include/Architecture.hpp` file. Comprehensive comments within the file also provide guidance. Dont remove the `#include` lines or variable definitions; only edit the content inside the `{}` brackets or remove content within those brackets.
+You can configure your CPU's architecture by editing the `include/Architecture.hpp` file. Comprehensive comments within the file also provide guidance. Don't remove the `#include` lines or variable definitions; only edit the content inside the `{}` brackets or remove content within those brackets.
 The default configuration is based on the original Turing Complete 8 bit architecture (+ RAM address).
 
 ### Global Architecture Settings
