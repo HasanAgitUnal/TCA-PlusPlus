@@ -13,9 +13,9 @@ TEST_DIR = $(BUILD_DIR)/test
 SRC_FILES = src/functions.cpp src/main.cpp
 TEST_SRC_FILES = src/functions.cpp test/test_functions.cpp
 
-# Compiler and Linker Flags
-CXXFLAGS = -Wall -Wextra -std=c++17
+# Flags and Settings
 LDFLAGS_TEST = -pthread -lgtest -lgtest_main
+INCLUDE_PATHS = -I/usr/include
 
 .PHONY: all clean test windows linux
 
@@ -24,33 +24,33 @@ default: clean test all
 
 # Main build target
 all: windows linux
-	@echo -e "> BUILD\t\t\t[   \033[0;32mCOMPLETED\033[0m   ]"
-	@echo -e "\n> Files generated in $(BUILD_DIR) folder"
+	@printf "> BUILD\t\t\t[   \033[0;32mCOMPLETED\033[0m   ]\n"
+	@printf "\n> Files generated in $(BUILD_DIR) folder\n"
 
 # Windows cross-compilation from Linux
 windows:
-	@echo -e "> BUILD - WINDOWS\t[    RUNNING    ]"
+	@printf "> BUILD - WINDOWS\t[    RUNNING    ]\n"
 	@mkdir -p $(EXE_DIR)
-	@$(WIN_CXX_X86) $(CXXFLAGS) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(EXE_DIR)/$(APP_NAME_WIN_X86)"
-	@$(WIN_CXX_X64) $(CXXFLAGS) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(EXE_DIR)/$(APP_NAME_WIN_X64)"
-	@echo -e "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]"
+	@$(WIN_CXX_X86) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(EXE_DIR)/tca++_x86.exe"
+	@$(WIN_CXX_X64) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(EXE_DIR)/tca++_x64.exe"
+	@printf "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]\n"
 
 # Linux native compilation
 linux:
-	@echo -e "> BUILD - LINUX\t\t[    RUNNING    ]"
+	@printf "> BUILD - LINUX\t\t[    RUNNING    ]\n"
 	@mkdir -p $(LINUX_DIR)
-	@$(CXX) $(CXXFLAGS) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(LINUX_DIR)/$(APP_NAME_LINUX)"
-	@echo -e "> BUILD - LINUX\t\t[    \033[0;32mSUCCESS\033[0m    ]"
+	@$(CXX) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(LINUX_DIR)/tca++"
+	@printf "> BUILD - LINUX\t\t[    \033[0;32mSUCCESS\033[0m    ]\n"
 
 # Test build and run
 test:
-	@echo -e "> BUILD - TEST\t\t[    RUNNING    ]"
+	@printf "> BUILD - TEST\t\t[    RUNNING    ]\n"
 	@mkdir -p $(TEST_DIR)
-	@$(CXX) $(CXXFLAGS) $(INCLUDE_PATHS) $(TEST_SRC_FILES) -o $(TEST_DIR)/$(TEST_APP_NAME) $(LDFLAGS_TEST)
-	@./$(TEST_DIR)/$(TEST_APP_NAME)
-	@echo -e "> BUILD - TEST\t\t[    \033[32mSUCCESS\033[0m    ]"
+	@$(CXX) $(INCLUDE_PATHS) $(TEST_SRC_FILES) -o $(TEST_DIR)/unittest $(LDFLAGS_TEST)
+	@./$(TEST_DIR)/unittest
+	@printf "> BUILD - TEST\t\t[    \033[32mSUCCESS\033[0m    ]\n"
 
 # Clean target
 clean:
 	@rm -rf $(BUILD_DIR) 2>/dev/null
-	@echo -e "> BUILD - CLEAN \t[    \033[0;32mSUCCESS\033[0m    ]"
+	@printf "> BUILD - CLEAN \t[    \033[0;32mSUCCESS\033[0m    ]\n"

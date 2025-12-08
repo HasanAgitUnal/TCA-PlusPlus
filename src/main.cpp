@@ -54,9 +54,7 @@ int main (int argc, char* argv[]) {
                         << "ARCH:\n"
                         << "\tLoad architecture from given json file if not specified default values will be used for os:\n"
                         << "\tWindows: \%APPDATA%\\TCAPP\\architecture.json\n"
-                        << "\tLinux  : ~/.config/TCAPP/architecture.json\n\n"
-                        << "NOTE:\n"
-                        << "	If you get an error caused by architecture. You should fix error in Architecture.hpp in source code and rebuild compiler.\n";
+                        << "\tLinux  : ~/.config/TCAPP/architecture.json\n";
 
                 return 0;
         }
