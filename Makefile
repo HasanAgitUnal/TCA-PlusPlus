@@ -20,7 +20,7 @@ LDFLAGS_TEST = -pthread -lgtest -lgtest_main
 .PHONY: all clean test windows linux
 
 # Default target
-default: test-os clean test all
+default: clean test all
 
 # Main build target
 all: windows linux
