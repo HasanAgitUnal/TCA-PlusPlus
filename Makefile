@@ -19,12 +19,6 @@ LDFLAGS_TEST = -pthread -lgtest -lgtest_main
 
 .PHONY: all clean test windows linux
 
-test-os:
-ifeq ($(OS),Windows_NT)
-	@echo "You cant build on Windows using make. If you have g++ command try running: g++ $(SRC_FILES) -o $(EXE_DIR)/tca++.exe"
-	@exit 1
-endif
-
 # Default target
 default: test-os clean test all
 
