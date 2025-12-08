@@ -1,74 +1,62 @@
-WINCC_X64=x86_64-w64-mingw32-g++
-WINCC_X86=i686-w64-mingw32-g++
-CC=g++
-INCLUDE_PATHS=-I<nlohmann_klasorunun_bulundugu_yol>
+# Compilers
+CXX = g++
+WIN_CXX_X64 = x86_64-w64-mingw32-g++
+WIN_CXX_X86 = i686-w64-mingw32-g++
 
-.PHONY: all clean test build-all windows-build linux-build
+# Directories
+BUILD_DIR = build
+EXE_DIR = $(BUILD_DIR)/exe
+LINUX_DIR = $(BUILD_DIR)/linux
+TEST_DIR = $(BUILD_DIR)/test
 
-############################################################################################################################
+# Source Files
+SRC_FILES = src/functions.cpp src/main.cpp
+TEST_SRC_FILES = src/functions.cpp test/test_functions.cpp
 
-default: clean test all
+# Compiler and Linker Flags
+CXXFLAGS = -Wall -Wextra -std=c++17
+LDFLAGS_TEST = -pthread -lgtest -lgtest_main
 
-############################################################################################################################
+.PHONY: all clean test windows linux
 
-build: all
+test-os:
+ifeq ($(OS),Windows_NT)
+	@echo "You cant build on Windows using make. If you have g++ command try running: g++ $(SRC_FILES) -o $(EXE_DIR)/tca++.exe"
+	@exit 1
+endif
 
+# Default target
+default: test-os clean test all
+
+# Main build target
 all: windows linux
-	@printf "> BUILD\t\t\t[   \033[0;32mCOMPLETED\033[0m   ]\n"
-	@printf "\n> Files generated in build folder\”"
+	@echo -e "> BUILD\t\t\t[   \033[0;32mCOMPLETED\033[0m   ]"
+	@echo -e "\n> Files generated in $(BUILD_DIR) folder"
 
-#--------------------------------------------------------------------------------------------------------------------------#
-
+# Windows cross-compilation from Linux
 windows:
-	@printf "> BUILD - WINDOWS\t[    RUNNING    ]\n"
-	@mkdir -p build/exe
+	@echo -e "> BUILD - WINDOWS\t[    RUNNING    ]"
+	@mkdir -p $(EXE_DIR)
+	@$(WIN_CXX_X86) $(CXXFLAGS) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(EXE_DIR)/$(APP_NAME_WIN_X86)"
+	@$(WIN_CXX_X64) $(CXXFLAGS) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(EXE_DIR)/$(APP_NAME_WIN_X64)"
+	@echo -e "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]"
 
-ifeq ($(OS),Windows_NT)
-	-@g++ $(INCLUDE_PATHS) src/functions.cpp src/main.cpp -m32 -o "build/exe/tca++_x86.exe" || echo "> BUILD - WINDOWS    [    SKIPPING   ] : Failed to build 32 bit exe. Your gcc may doesn't support -m32 flag"
-	@g++ $(INCLUDE_PATHS) src/functions.cpp src/main.cpp -o "build/exe/tca++_x64.exe"
-else
-	@$(WINCC_X86) $(INCLUDE_PATHS) src/functions.cpp src/main.cpp -o "build/exe/tca++_x86.exe"
-	@$(WINCC_X64) $(INCLUDE_PATHS) src/functions.cpp src/main.cpp -o "build/exe/tca++_x64.exe"
-endif
-
-	@printf "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]\n"
-
-#--------------------------------------------------------------------------------------------------------------------------#
-
+# Linux native compilation
 linux:
+	@echo -e "> BUILD - LINUX\t\t[    RUNNING    ]"
+	@mkdir -p $(LINUX_DIR)
+	@$(CXX) $(CXXFLAGS) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(LINUX_DIR)/$(APP_NAME_LINUX)"
+	@echo -e "> BUILD - LINUX\t\t[    \033[0;32mSUCCESS\033[0m    ]"
 
-ifeq ($(OS),Windows_NT)
-	@echo "> BUILD - LINUX    [    SKIPPING   ] : Can't build for Linux in Windows. Skipping Linux build.\n"
-else
-	@printf "> BUILD - LINUX\t\t[    RUNNING    ]"
-	@mkdir -p "build/linux"
-	@$(CC) $(INCLUDE_PATHS) src/functions.cpp src/main.cpp -o "build/linux/tca++"
-	@printf "> BUILD - LINUX\t\t[    \033[0;32mSUCCESS\033[0m    ]\n"
-endif
-
-############################################################################################################################
-
+# Test build and run
 test:
-	@printf '> BUILD - TEST\t\t[    RUNNING    ]\n'
+	@echo -e "> BUILD - TEST\t\t[    RUNNING    ]"
+	@mkdir -p $(TEST_DIR)
+	@$(CXX) $(CXXFLAGS) $(INCLUDE_PATHS) $(TEST_SRC_FILES) -o $(TEST_DIR)/$(TEST_APP_NAME) $(LDFLAGS_TEST)
+	@./$(TEST_DIR)/$(TEST_APP_NAME)
+	@echo -e "> BUILD - TEST\t\t[    \033[32mSUCCESS\033[0m    ]"
 
-	@mkdir -p build/test
-
-ifeq ($(OS),Windows_NT)
-	@g++ $(INCLUDE_PATHS) src/functions.cpp test/test_functions.cpp -o build/test/unittest.exe -pthread -lgtest -lgtest_main
-	@build/test/unittest.exe
-else
-	@g++ $(INCLUDE_PATHS) src/functions.cpp test/test_functions.cpp -o build/test/unittest -pthread -lgtest -lgtest_main
-	@./build/test/unittest
-endif
-
-	@printf '> BUILD - TEST\t\t[    \033[32mSUCCESS\033[0m    ]\n'
-
-############################################################################################################################
-
+# Clean target
 clean:
-ifeq ($(OS),Windows_NT)
-	-@rd /s /q build 2>NUL
-else
-	@rm -rf build 2>/dev/null
-endif
-	@printf "> BUILD - CLEAN \t[    \033[0;32mSUCCESS\033[0m    ]\n"
+	@rm -rf $(BUILD_DIR) 2>/dev/null
+	@echo -e "> BUILD - CLEAN \t[    \033[0;32mSUCCESS\033[0m    ]"

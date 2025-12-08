@@ -1,6 +1,8 @@
 {
-    "instruction_size": 8,
-    "max_int_size": 6,
+    "instruction_size": 8, // single instruction size 
+    "max_int_size": 6, // Maximum integer bit wide (max 64)
+
+    // Keywords for commands
     "keywords": {
         "MVI": {
             "binary": "00",
