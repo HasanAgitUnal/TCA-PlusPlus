@@ -5,7 +5,8 @@ WIN_CXX_X86 = i686-w64-mingw32-g++
 
 # Directories
 BUILD_DIR = build
-EXE_DIR = $(BUILD_DIR)/exe
+WINX86_DIR = $(BUILD_DIR)/windows/x86
+WINX64_DIR = $(BUILD_DIR)/windows/x64
 LINUX_DIR = $(BUILD_DIR)/linux
 TEST_DIR = $(BUILD_DIR)/test
 
@@ -16,9 +17,8 @@ TEST_SRC_FILES = src/functions.cpp test/test_functions.cpp
 # App names
 APP_NAME = tca++
 APP_NAME_LINUX = $(APP_NAME)
-APP_NAME_WIN_X86 = $(APP_NAME)_x86.exe
-APP_NAME_WIN_X64 = $(APP_NAME)_x64.exe
-TEST_APP_NAME = test_runner
+APP_NAME_WIN= $(APP_NAME).exe
+TEST_APP_NAME = unittest
 
 # Flags and Settings
 LDFLAGS_TEST = -pthread -lgtest -lgtest_main
@@ -37,10 +37,16 @@ all: windows linux
 # Windows cross-compilation from Linux
 windows:
 	@printf "> BUILD - WINDOWS\t[    RUNNING    ]\n"
-	@mkdir -p $(EXE_DIR)
-	@$(WIN_CXX_X86) $(INCLUDE) $(SRC_FILES) -o "$(EXE_DIR)/$(APP_NAME_WIN_X86)"
-	@$(WIN_CXX_X64) $(INCLUDE) $(SRC_FILES) -o "$(EXE_DIR)/$(APP_NAME_WIN_X64)"
+	@mkdir -p $(WINX86_DIR)
+	@mkdir -p $(WINX64_DIR)
+	@$(WIN_CXX_X86) $(INCLUDE) $(SRC_FILES) -o "$(WINX86_DIR)/$(APP_NAME_WIN)"
+	@$(WIN_CXX_X64) $(INCLUDE) $(SRC_FILES) -o "$(WINX64_DIR)/$(APP_NAME_WIN)"
 	@printf "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]\n"
+
+windows-installer: windows
+	@printf "> BUILD - WIN INSTALLER\t[    RUNNING    ]\n"
+	@WINEDEBUG=-all wine "C:\\Program Files (x86)\\inno_setup\\ISCC.exe" installer.iss /O"build/windows" /F"tca++_setup.exe" >build/windows/installer.log
+	@printf "> BUILD - WIN INSTALLER\t[    \033[0;32mSUCCESS\033[0m    ]\n"
 
 # Linux native compilation
 linux:
