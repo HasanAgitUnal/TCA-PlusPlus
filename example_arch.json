@@ -1,13 +1,12 @@
 {
-    "instruction_size": 8, // single instruction size 
-    "max_int_size": 6, // Maximum integer bit wide (max 64)
+    "instruction_size": 8, 
+    "max_int_size": 6,
 
-    // Keywords for commands
     "keywords": {
         "MVI": {
             "binary": "00",
             "arg_count": 1,
-            "arg_sets": "int" // Means it accepts int args
+            "arg_sets": "int"
         },
         "OPPR": {
             "binary": "01000",
@@ -30,7 +29,6 @@
         }
     },
 
-    // Argument sets for using in keywords
     "arg_sets": {
         "reg": {
             "R0": "000",

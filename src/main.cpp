@@ -107,7 +107,7 @@ int main (int argc, char* argv[]) {
                 return 1;
         }
 
-        if (!KEYWORDS.is_array() || !ARGS.is_array()) {
+        if (!KEYWORDS.is_object() || !ARGS.is_object()) {
                 std::cerr << msg::error << "Error in config file: \"keywords\" or \"arg_sets\" not an json array\n";
                 return 1;
         }
@@ -134,7 +134,7 @@ int main (int argc, char* argv[]) {
         std::vector<std::string> codelines = split_and_clean(fileContents);
 
         // Parse code
-        std::vector<std::string> binaryCommands = parse_code(codelines, ARGS, KEYWORDS, INSTRUCTION_SIZE, MAX_INT_SIZE);
+        std::vector<std::string> binaryCommands = parse_code(codelines, KEYWORDS, ARGS, INSTRUCTION_SIZE, MAX_INT_SIZE);
 
         // Prepare the output
         std::vector<uint8_t> output_data;

@@ -14,7 +14,7 @@ SRC_FILES = src/functions.cpp src/main.cpp
 TEST_SRC_FILES = src/functions.cpp test/test_functions.cpp
 
 # App names
-APP_NAME = tcapp
+APP_NAME = tca++
 APP_NAME_LINUX = $(APP_NAME)
 APP_NAME_WIN_X86 = $(APP_NAME)_x86.exe
 APP_NAME_WIN_X64 = $(APP_NAME)_x64.exe
