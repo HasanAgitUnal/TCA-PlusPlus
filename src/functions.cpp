@@ -30,7 +30,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 #include "../include/functions.hpp" // get message mods
 
@@ -79,11 +79,11 @@ std::string read_file(std::string &f) {
         std::ifstream file(f);
 
         if (!file.is_open() && getConfigPath() != f) {
-                std::cerr << ERROR << "Cant read file: " << f << std::endl;
+                std::cerr << msg::error << "Cant read file: " << f << std::endl;
                 exit(1);
 
         } else if (!file.is_open()) { // Reading default config file
-                std::cerr << ERROR << "No config file found or cant read it. Use tca++ --help to see config location";
+                std::cerr << msg::error << "No config file found or cant read it. Use tca++ --help to see config location";
                 exit(1);
         }
 
@@ -127,18 +127,18 @@ uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE) {
         try {
                 intarg = std::stoll(arg);
         } catch(const std::exception& e) {
-                std::cerr << ERROR << "Invalid argument: " << arg << std::endl;
+                std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
                 exit(1);
         }
 
         // TODO: Add support for signed binary
         if (intarg < 0) {
-                std::cerr << ERROR << "Signed binary(negative int) not supported (for now)\n";
+                std::cerr << msg::error << "Signed binary(negative int) not supported (for now)\n";
                 exit(1);
         }
 
         if (MAX_INT_SIZE > 64) {
-                std::cerr << ERROR << "Error in Archtitecture. More than 64 bit integer not supported";
+                std::cerr << msg::error << "Error in Archtitecture. More than 64 bit integer not supported";
                 exit(1);
         }
 
@@ -146,7 +146,7 @@ uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE) {
         uint64_t maxInt = (MAX_INT_SIZE == 64) ? UINT64_MAX : (1ULL << MAX_INT_SIZE) - 1;
 
         if (uarg > maxInt) {
-                std::cerr << ERROR << "Integer is too big: " << intarg << " .Max integer for this architecture: " << maxInt << std::endl;
+                std::cerr << msg::error << "Integer is too big: " << intarg << " .Max integer for this architecture: " << maxInt << std::endl;
                 exit(1);
         }
 
@@ -169,7 +169,7 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
                 for (std::string &type : arg_types) {
                         if (type != "int") {
                                 if (!ARGS.contains(type)) {
-                                        std::cerr << ERROR << "Unknown arg set in architecture: " << type << std::endl;
+                                        std::cerr << msg::error << "Unknown arg set in architecture: " << type << std::endl;
                                         exit(1);
                                 }
 
@@ -188,7 +188,7 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
                         uint64_t byte_int;
                         if (!valid_args.contains(arg)){
                                 if (valid_args["int"] == "0") {
-                                        std::cerr << ERROR << "Invalid argument: " << arg << std::endl;
+                                        std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
                                         exit(1);
                                 } else {
 
@@ -205,7 +205,7 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
         }
 
         if (binary_code.size() != INSTRUCTION_SIZE) {
-                std::cerr << ERROR << "Error in architecture or because of args. Binary command is too long. Command: " << code << std::endl;
+                std::cerr << msg::error << "Error in architecture or because of args. Binary command is too long. Command: " << code << std::endl;
                 exit(1);
         }
         
@@ -221,7 +221,7 @@ std::vector<std::string> parse_code(std::vector<std::string> &codelines, json &K
                 if (splitted.empty()) continue; // if im stupid maybe splitted be empty
 
                 if (!KEYWORDS.contains(splitted[0])){
-                        std::cerr << ERROR << "Invalid keyword: \"" << splitted[0] << "\"\n";
+                        std::cerr << msg::error << "Invalid keyword: \"" << splitted[0] << "\"\n";
                         exit(1);
                 }
 
@@ -231,14 +231,14 @@ std::vector<std::string> parse_code(std::vector<std::string> &codelines, json &K
                 int arg_count =  keyword.at("arg_count").get<int>();
 
                 if (splitted.size()-1 > arg_count || splitted.size()-1 < arg_count) {
-                        std::cerr << ERROR << "Expected " << arg_count << " arguments but " << splitted.size()-1 << " given.\n";
+                        std::cerr << msg::error << "Expected " << arg_count << " arguments but " << splitted.size()-1 << " given.\n";
                         exit(1);
                 }
 
                 // If doesnt takes arguments just add command itself
                 if (arg_count == 0) {
                         if (binary.size() != INSTRUCTION_SIZE) {
-                                std::cerr << ERROR << "Error in command architecture. Command \"" << splitted[0] << "\" has invalid binary.\n";
+                                std::cerr << msg::error << "Error in command architecture. Command \"" << splitted[0] << "\" has invalid binary.\n";
                                 exit(1);
                         }
 

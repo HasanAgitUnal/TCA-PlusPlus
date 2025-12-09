@@ -60,9 +60,9 @@ tca++ FILES [-o OUTPUT] [-t binary|text-binary|hex ] [-a ARCHITECTURE_FILE]
 ```
 
 Optionals:
-- `-o` : Output file
-- `-t` : Output types excepts values: `binary`, `text-binary`, `hex`
-- `-a` : Custom architecture config file path
+- `-o` : Output file. Default: `program`
+- `-t` : Output types excepts values: `binary`, `text-binary`, `hex`. Default: `binary`
+- `-a` : Custom architecture config file path.
 
 ## Example
 
@@ -70,7 +70,7 @@ Optionals:
 
 For assembling it run:
 ```asm
-tca++ loop_add.asm -o loop_add
+tca++ example.asm -o example
 ```
 
 ## Configuration Guide

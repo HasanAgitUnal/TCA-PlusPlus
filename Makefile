@@ -13,9 +13,16 @@ TEST_DIR = $(BUILD_DIR)/test
 SRC_FILES = src/functions.cpp src/main.cpp
 TEST_SRC_FILES = src/functions.cpp test/test_functions.cpp
 
+# App names
+APP_NAME = tcapp
+APP_NAME_LINUX = $(APP_NAME)
+APP_NAME_WIN_X86 = $(APP_NAME)_x86.exe
+APP_NAME_WIN_X64 = $(APP_NAME)_x64.exe
+TEST_APP_NAME = test_runner
+
 # Flags and Settings
 LDFLAGS_TEST = -pthread -lgtest -lgtest_main
-INCLUDE_PATHS = -I/usr/include
+INCLUDE = -Iinclude
 
 .PHONY: all clean test windows linux
 
@@ -31,24 +38,24 @@ all: windows linux
 windows:
 	@printf "> BUILD - WINDOWS\t[    RUNNING    ]\n"
 	@mkdir -p $(EXE_DIR)
-	@$(WIN_CXX_X86) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(EXE_DIR)/tca++_x86.exe"
-	@$(WIN_CXX_X64) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(EXE_DIR)/tca++_x64.exe"
+	@$(WIN_CXX_X86) $(INCLUDE) $(SRC_FILES) -o "$(EXE_DIR)/$(APP_NAME_WIN_X86)"
+	@$(WIN_CXX_X64) $(INCLUDE) $(SRC_FILES) -o "$(EXE_DIR)/$(APP_NAME_WIN_X64)"
 	@printf "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]\n"
 
 # Linux native compilation
 linux:
 	@printf "> BUILD - LINUX\t\t[    RUNNING    ]\n"
 	@mkdir -p $(LINUX_DIR)
-	@$(CXX) $(INCLUDE_PATHS) $(SRC_FILES) -o "$(LINUX_DIR)/tca++"
+	@$(CXX) $(INCLUDE) $(SRC_FILES) -o "$(LINUX_DIR)/$(APP_NAME_LINUX)"
 	@printf "> BUILD - LINUX\t\t[    \033[0;32mSUCCESS\033[0m    ]\n"
 
 # Test build and run
 test:
-	@printf "> BUILD - TEST\t\t[    RUNNING    ]\n"
+	@printf "> BUILD - TEST\t\t[    RUNNING    ]\n\n"
 	@mkdir -p $(TEST_DIR)
-	@$(CXX) $(INCLUDE_PATHS) $(TEST_SRC_FILES) -o $(TEST_DIR)/unittest $(LDFLAGS_TEST)
-	@./$(TEST_DIR)/unittest
-	@printf "> BUILD - TEST\t\t[    \033[32mSUCCESS\033[0m    ]\n"
+	@$(CXX) $(INCLUDE) $(TEST_SRC_FILES) -o $(TEST_DIR)/$(TEST_APP_NAME) $(LDFLAGS_TEST)
+	@./$(TEST_DIR)/$(TEST_APP_NAME)
+	@printf "\n> BUILD - TEST\t\t[    \033[32mSUCCESS\033[0m    ]\n"
 
 # Clean target
 clean:

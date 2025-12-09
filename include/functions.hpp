@@ -19,16 +19,17 @@
 #include <vector>
 #include <cstdint>
 #include <string>
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
 
-// Message mods
-inline const std::string SUCCESS = "\033[0;32mS:\033[0m ";
-inline const std::string ERROR = "\033[0;31mE:\033[0m ";
-inline const std::string WARNING = "\033[0;33mW:\033[0m ";
-inline const std::string INFO = "I: ";
-inline const std::string DEBUG = "\033[0;34mD:\033[0m ";
+namespace msg {
+	inline const std::string success = "\033[0;32mS:\033[0m ";
+	inline const std::string error = "\033[0;31mE:\033[0m ";
+	inline const std::string warning = "\033[0;33mW:\033[0m ";
+	inline const std::string info = "I: ";
+	inline const std::string debug = "\033[0;34mD:\033[0m ";
+}
 
 // get config path
 std::string getConfigPath();

@@ -19,7 +19,7 @@
 #include <filesystem>
 #include <vector>
 #include <string>
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 #include <cstdint>
 
@@ -40,10 +40,11 @@ int main (int argc, char* argv[]) {
         ArgParser args(argc, argv);
 
         if (args.hasFlag("--help")) {
-                std::cout    << "Turing Complete Assempler++ - v0.2\n\n"
+                std::cout    << "Turing Complete Assempler++ - v1.0\n\n"
                         << "Usage: tca++ FILES [OPTIONS]\n\n"
                         << "OPTIONS:\n"
-                        << "\t--help, -h  :\tShow this message\n"
+                        << "\t--help      :\tShow this message\n"
+                        << "\t--version   :\tShow version info\n"
                         << "\t-o FILES    :\tOutput destination\n"
                         << "\t-t OTYPE    :\tOutput type\n"
                         << "\t-a ARCH     :\tThe architecture json file\n\n"
@@ -53,8 +54,7 @@ int main (int argc, char* argv[]) {
                         << "\thex         :\tHexadecimal text\n\n"
                         << "ARCH:\n"
                         << "\tLoad architecture from given json file if not specified default values will be used for os:\n"
-                        << "\tWindows: \%APPDATA%\\TCAPP\\architecture.json\n"
-                        << "\tLinux  : ~/.config/TCAPP/architecture.json\n";
+                        << "\tFor you default path is: " << DEFAULT_ARCH_FILE << std::endl;
 
                 return 0;
         }
@@ -63,7 +63,7 @@ int main (int argc, char* argv[]) {
         std::vector<std::string> inputs = args.getPositional();
 
         if (inputs.size() == 0) {
-                std::cout << ERROR << "no input files given.\n";
+                std::cout << msg::error << "no input files given.\n";
                 return 1;
         }
 
@@ -78,7 +78,7 @@ int main (int argc, char* argv[]) {
         if (!opt.empty()) { otype = opt; } else { otype = DEFAULT_OTYPE; };
         
         if (otype != "binary" && otype != "text-binary" && otype != "hex") {
-                std::cout << ERROR << "Invalid output type: " << otype << std::endl;
+                std::cout << msg::error << "Invalid output type: " << otype << std::endl;
                 return 1;
         }
 
@@ -102,28 +102,28 @@ int main (int argc, char* argv[]) {
                 ARGS = arch.at("arg_sets");
 
         } catch (const json::exception& e) {
-                std::cerr << ERROR << "Failed to parse or required keys are not found in json file: " << arch_path << "\n"
+                std::cerr << msg::error << "Failed to parse or required keys are not found in json file: " << arch_path << "\n"
                           << "\tReason: " << e.what() << std::endl;
                 return 1;
         }
 
         if (!KEYWORDS.is_array() || !ARGS.is_array()) {
-                std::cerr << ERROR << "Error in config file: \"keywords\" or \"arg_sets\" not an json array\n";
+                std::cerr << msg::error << "Error in config file: \"keywords\" or \"arg_sets\" not an json array\n";
                 return 1;
         }
 
         if (MAX_INT_SIZE > 64 || MAX_INT_SIZE < 1) {
-                std::cerr << ERROR << "FATAL ERROR: Error in architecture MAX_INT_SIZE should be in range: 1-64.\n";
+                std::cerr << msg::error << "FATAL ERROR: Error in architecture MAX_INT_SIZE should be in range: 1-64.\n";
                 return 1;
         }
 
         if (INSTRUCTION_SIZE % 8 != 0) {
-                std::cerr << ERROR << "FATAL ERROR: Error in architecture INSTRUCTION_SIZE should be multiple of 8.\n";
+                std::cerr << msg::error << "FATAL ERROR: Error in architecture INSTRUCTION_SIZE should be multiple of 8.\n";
                 return 1;
         }
 
         if (INSTRUCTION_SIZE > 64 && otype == "hex") {
-                std::cerr << ERROR << "Hex output type not supported for architectures over 64-bit instructions.\n";
+                std::cerr << msg::error << "Hex output type not supported for architectures over 64-bit instructions.\n";
                 return 1;
         }
 
@@ -156,7 +156,7 @@ int main (int argc, char* argv[]) {
         out.write(reinterpret_cast<const char*>(output_data.data()), output_data.size());
         out.close();
 
-        std::cout << SUCCESS << "Build completed. output file generated at: \"" << std::filesystem::absolute(output).string() << "\"\n";
+        std::cout << msg::success << "Build completed. output file generated at: \"" << std::filesystem::absolute(output).string() << "\"\n";
 
         return 0;
 }
