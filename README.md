@@ -30,7 +30,6 @@ If you want to build `tca++` from source code.
 - `make`
 - `git`
 - `g++`
-- `nlohmann/json` library
 
 ###### Steps:
 
