@@ -11,7 +11,9 @@ ArchitecturesInstallIn64BitMode=x64
 
 [Files]
 Source: "build\windows\x86\tca++.exe"; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libs\x86\*.dll"; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "build\windows\x64\tca++.exe"; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libs\x64\*.dll"; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
 
 [Registry]
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; \

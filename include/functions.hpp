@@ -23,6 +23,16 @@
 
 using json = nlohmann::json;
 
+#ifdef _WIN32
+namespace msg { // ANSII codes doesnt working on windows. so define them without codes
+        inline const std::string success = "S: ";
+        inline const std::string error = "E: ";
+        inline const std::string warning = "W: ";
+        inline const std::string info = "I: ";
+        inline const std::string debug = "D: ";
+}
+
+#else
 namespace msg {
 	inline const std::string success = "\033[0;32mS:\033[0m ";
 	inline const std::string error = "\033[0;31mE:\033[0m ";
@@ -30,6 +40,9 @@ namespace msg {
 	inline const std::string info = "I: ";
 	inline const std::string debug = "\033[0;34mD:\033[0m ";
 }
+
+#endif
+
 
 // get config path
 std::string getConfigPath();

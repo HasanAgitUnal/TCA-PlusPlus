@@ -18,6 +18,7 @@ TEST_SRC_FILES = src/functions.cpp test/test_functions.cpp
 APP_NAME = tca++
 APP_NAME_LINUX = $(APP_NAME)
 APP_NAME_WIN= $(APP_NAME).exe
+APP_NAME_WININST= $(APP_NAME)_installer
 TEST_APP_NAME = unittest
 
 # Flags and Settings
@@ -36,6 +37,7 @@ all: windows linux
 
 # Windows cross-compilation from Linux
 windows:
+# Portable binaries
 	@printf "> BUILD - WINDOWS\t[    RUNNING    ]\n"
 	@mkdir -p $(WINX86_DIR)
 	@mkdir -p $(WINX64_DIR)
@@ -43,10 +45,9 @@ windows:
 	@$(WIN_CXX_X64) $(INCLUDE) $(SRC_FILES) -o "$(WINX64_DIR)/$(APP_NAME_WIN)"
 	@printf "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]\n"
 
-windows-installer: windows
-	@printf "> BUILD - WIN INSTALLER\t[    RUNNING    ]\n"
-	@WINEDEBUG=-all wine "C:\\Program Files (x86)\\inno_setup\\ISCC.exe" installer.iss /O"build/windows" /F"tca++_setup.exe" >build/windows/installer.log
-	@printf "> BUILD - WIN INSTALLER\t[    \033[0;32mSUCCESS\033[0m    ]\n"
+# Installer
+	@mkdir -p $(BUILD_DIR)/windows/installer
+	@WINEDEBUG=-all wine "C:\\Program Files (x86)\\inno_setup\\ISCC.exe" Installer.iss /O"build/windows/installer" /F"$(APP_NAME_WININST)" >/tmp/tcapp_build.log || printf "> See full log at: /tmp/tcapp_build.log\n"
 
 # Linux native compilation
 linux:
