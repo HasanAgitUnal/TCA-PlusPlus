@@ -44,10 +44,10 @@ std::string getConfigPath() {
     if (SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, path) != S_OK) {
         return "";
     }
-    return std::string(path) + "\\tcapp";
+    return std::string(path) + "\\tcapp\\architecture.json";
 #else
     // Linux
-    return std::string(getenv("HOME")) + "/.config/tcapp";
+    return std::string(getenv("HOME")) + "/.config/tcapp/architecture.json";
 #endif
 
 }
