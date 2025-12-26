@@ -88,6 +88,8 @@ json ARGS = R"(
 }
 )"_json;
 
+json EMPTY_LABELS;
+
 TEST(SplitFunc, TestJob) {
         const std::vector<std::string> HELLO = {"hello", "world"};
         const std::vector<std::string> FOO = {"foo", "bar", "baz"};
@@ -202,21 +204,30 @@ TEST(MkBinaryFunc, TestJob) {
         std::string C3 = "JMP";
         std::string E3 = "11000100";
 
+        std::vector<std::string> S4 = {"MVI", ".example"};
+        std::string C4 = "MVI .example";
+        std::string E4 = "00000010";
+        json example_label = R"({ "example": 2 })"_json;        
+
         EXPECT_EQ(
-                mk_binary( S1, K1, C1, ARGS, KEYWORDS, MAX_INT, INSTRUCTION),
+                mk_binary( S1, K1, C1, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
                 E1 
         );
 
         EXPECT_EQ(
-                mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION),
+                mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
                 E2
         );
 
         EXPECT_EQ(
-                mk_binary(S3, K3, C3, ARGS, KEYWORDS, MAX_INT, INSTRUCTION),
+                mk_binary(S3, K3, C3, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
                 E3
         );
 
+        EXPECT_EQ(
+                mk_binary(S4, KEYWORDS.at("MVI"), C4, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, example_label),
+                E4
+        );
 
 }
 
@@ -237,16 +248,26 @@ TEST(MkBinaryFunc, TestError) {
         })"_json;
         std::string C2 = "MOV R1 R2 R3";
 
+        std::vector<std::string> S3 = {"MVI", ".example"};
+        std::string C3 = "MVI .example";
+        std::string E3 = "00000010";
+               
         EXPECT_EXIT(
-                mk_binary(S1, K1, C1, ARGS, KEYWORDS, MAX_INT, INSTRUCTION),
+                mk_binary(S1, K1, C1, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
                 ::testing::ExitedWithCode(1),
                 "Unknown arg set in architecture"
         );
 
         EXPECT_EXIT(
-                mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION),
+                mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
                 ::testing::ExitedWithCode(1),
                 "Error in architecture or because of args. Binary command is too long. Command:"
+        );
+        
+        EXPECT_EXIT(
+                mk_binary(S3, KEYWORDS.at("MVI"), C3, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
+                ::testing::ExitedWithCode(1),
+                "Invalid argument"
         );
 }
 

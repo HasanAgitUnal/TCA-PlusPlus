@@ -167,7 +167,7 @@ uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE, bool is_signed) {
 }
 
 // make command binary
-std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::string &code, json &ARGS, json &KEYWORDS, int &MAX_INT_SIZE, int &INSTRUCTION_SIZE) {
+std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::string &code, json &ARGS, json &KEYWORDS, int &MAX_INT_SIZE, int &INSTRUCTION_SIZE, json &labels) {
         std::string binary_code = keyword.at("binary").get<std::string>();
 
         // if arg_count is bigger than zero add arg bytes. otherwise just command opcode will be used as binary_code
@@ -199,21 +199,28 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
                         // skip command name
                         if (arg == splitted[0]) continue;
 
-                        // Path for named arguments (e.g. registers)
+                        std::string arg_cut = arg;
+                        arg_cut.erase(0, 1);
+                        
                         if (valid_args.contains(arg)) {
                             binary_code += valid_args.at(arg).get<std::string>();
                         }
-                        // Path for integer arguments
+
+                        else if (labels.contains(arg_cut)) {
+                                uint64_t byte_int = labels[arg_cut]; 
+                                binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                        }
+                        
                         else if (valid_args["int"] == 1) {
                             uint64_t byte_int = mk_int_arg(arg, MAX_INT_SIZE, true);
                             binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
                         }
-                        // Path for unsigned integer arguments
+
                         else if (valid_args["uint"] == 1) {
                             uint64_t byte_int = mk_int_arg(arg, MAX_INT_SIZE, false);
                             binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
                         }
-                        // Path for error
+
                         else {
                             std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
                             exit(1);
@@ -223,9 +230,6 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
 
         if (binary_code.size() != INSTRUCTION_SIZE) {
                 std::cerr << msg::error << "Error in architecture or because of args. Binary command is too long. Command: " << code << std::endl;
-                
-
-                
                 exit(1);
         }
         
@@ -236,7 +240,17 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
 std::vector<std::string> parse_code(std::vector<std::string> &codelines, json &KEYWORDS, json &ARGS, int &INSTRUCTION_SIZE, int &MAX_INT_SIZE) {
         std::vector<std::string> binary_commands;
 
+        u_int ci = 0;
+        json labels;
+        
         for (std::string& code : codelines) {
+                
+                if ( code[0] == '.' ) {
+                        code.erase(0, 1);
+                        labels[code] = ci;
+                        continue;        
+                }
+                
                 std::vector<std::string> splitted = split(code, ' ');
                 if (splitted.empty()) continue; // if im stupid maybe splitted be empty
 
@@ -267,7 +281,9 @@ std::vector<std::string> parse_code(std::vector<std::string> &codelines, json &K
                 }
 
                 // Realy parse command
-                binary_commands.push_back(mk_binary(splitted, keyword, code, ARGS, KEYWORDS, MAX_INT_SIZE, INSTRUCTION_SIZE));
+                binary_commands.push_back(mk_binary(splitted, keyword, code, ARGS, KEYWORDS, MAX_INT_SIZE, INSTRUCTION_SIZE, labels));
+        
+                ci++;
         }
 
         return binary_commands;

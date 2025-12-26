@@ -6,6 +6,7 @@ Licensed under the GNU Affero General Public License v3.0 (AGPLv3). See the [LIC
 
 ## Content Table
 
+- [Features](#features)
 - [Installation](#installation)
 - [Building from Source](#building-from-source)
 - [Usage](#usage)
@@ -14,7 +15,11 @@ Licensed under the GNU Affero General Public License v3.0 (AGPLv3). See the [LIC
   - [Global Architecture Settings](#global-architecture-settings)
   - [Command Opcodes (KEYWORDS)](#command-opcodes-keywords)
   - [Argument Sets (ARGS)](#argument-sets-arg_sets)
+  - [Labels](#labels)
+## Features
 
+- All CPU architectures are supported
+- Configured with JSON
 
 ## Installation
 
@@ -166,3 +171,17 @@ If your instructions use named arguments (like registers or condition codes), de
 
 - The key (e.g., `"reg"`, `"cond"`) is a unique name for the argument set. This name is then used in the `arg_sets` field of your commands in the `keywords` object.
 - Inside each set, each key-value pair represents an argument's assembly name and its corresponding binary value (e.g., `"R0": "000"`).
+- You can also use [labels](#labels) as arg.
+
+### Labels
+
+Labels are integer values. Labels contains address of the command after it.
+Defining a label:
+```asm
+.example
+```
+
+Using a label (for example)
+```asm
+JMP .example
+```

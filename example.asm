@@ -4,6 +4,8 @@
 MVI 5 ; MVI command uses R0 as save location
 MOV R0 R1
 
+.loop
+
 ; load R2 register
 MVI 3
 MOV R0 R2
@@ -14,8 +16,8 @@ OPPR ADD
 ; Load R1 with result value
 MOV R3 R1
 
-; Jump for making it a loop
-MVI 2 ; skip R1 loading for not resetting
+; Jump to loop
+MVI .loop ; skip R1 loading for not resetting
 JMP ; jmp to address at R0
 
 ; this will be run endless
