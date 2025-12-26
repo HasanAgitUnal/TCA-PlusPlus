@@ -98,7 +98,7 @@ An example `architecture.json` might look like this:
         "MVI": {
             "binary": "00",
             "arg_count": 1,
-            "arg_sets": "int"
+            "arg_sets": "uint"
         }
     },
 
