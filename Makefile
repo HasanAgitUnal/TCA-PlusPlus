@@ -18,7 +18,7 @@ TEST_SRC_FILES = src/functions.cpp test/test_functions.cpp
 APP_NAME = tca++
 APP_NAME_LINUX = $(APP_NAME)
 APP_NAME_WIN= $(APP_NAME).exe
-APP_NAME_WININST= $(APP_NAME)_installer
+APP_NAME_WININST= $(APP_NAME)_win_installer
 TEST_APP_NAME = unittest
 
 # Flags and Settings
@@ -43,6 +43,9 @@ windows:
 	@mkdir -p $(WINX64_DIR)
 	@$(WIN_CXX_X86) $(INCLUDE) $(SRC_FILES) -o "$(WINX86_DIR)/$(APP_NAME_WIN)"
 	@$(WIN_CXX_X64) $(INCLUDE) $(SRC_FILES) -o "$(WINX64_DIR)/$(APP_NAME_WIN)"
+	@cp -r libs/* build/windows
+	@cd $(WINX86_DIR) && zip tca++_x86_win_portable.zip * >/dev/null
+	@cd $(WINX64_DIR) && zip tca++_x64_win_portable.zip * >/dev/null
 	@printf "> BUILD - WINDOWS\t[    \033[0;32mSUCCESS\033[0m    ]\n"
 
 # Installer
