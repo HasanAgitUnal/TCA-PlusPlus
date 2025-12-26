@@ -121,32 +121,45 @@ std::vector<std::string> split_and_clean(std::string &str) {
         return result;
 }
 
-// make int arg (but its a std::string) binary (uint64_t)s
-uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE) {
-        long long intarg;
-        try {
-                intarg = std::stoll(arg);
-        } catch(const std::exception& e) {
-                std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
-                exit(1);
-        }
-
-        // TODO: Add support for signed binary
-        if (intarg < 0) {
-                std::cerr << msg::error << "Signed binary(negative int) not supported (for now)\n";
-                exit(1);
-        }
-
+// make int arg
+uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE, bool is_signed) {
         if (MAX_INT_SIZE > 64) {
                 std::cerr << msg::error << "Error in Archtitecture. More than 64 bit integer not supported";
                 exit(1);
         }
 
-        uint64_t uarg = static_cast<uint64_t>(intarg);
-        uint64_t maxInt = (MAX_INT_SIZE == 64) ? UINT64_MAX : (1ULL << MAX_INT_SIZE) - 1;
+        uint64_t uarg;
 
-        if (uarg > maxInt) {
-                std::cerr << msg::error << "Integer is too big: " << intarg << " .Max integer for this architecture: " << maxInt << std::endl;
+        try {
+                if (is_signed) {
+                        long long intarg = std::stoll(arg);
+
+                        // Check if the value fits within the specified signed bit width.
+                        if (MAX_INT_SIZE < 64) {
+                                long long min_val = -(1LL << (MAX_INT_SIZE - 1));
+                                long long max_val = (1LL << (MAX_INT_SIZE - 1)) - 1;
+                                if (intarg < min_val || intarg > max_val) {
+                                        std::cerr << msg::error << "Integer is out of range for " << MAX_INT_SIZE << " signed bits: " << arg << std::endl;
+                                        exit(1);
+                                }
+                        }
+
+                        
+                        uarg = static_cast<uint64_t>(intarg);
+                } else { // Unsigned
+                        unsigned long long intarg = std::stoull(arg);
+
+                        uint64_t maxInt = (MAX_INT_SIZE == 64) ? UINT64_MAX : (1ULL << MAX_INT_SIZE) - 1;
+
+                        if (intarg > maxInt) {
+                                std::cerr << msg::error << "Integer is too big: " << intarg << ". Max integer for this architecture: " << maxInt << std::endl;
+                                exit(1);
+                        }
+                        
+                        uarg = static_cast<uint64_t>(intarg);
+                }
+        } catch(const std::exception& e) {
+                std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
                 exit(1);
         }
 
@@ -164,18 +177,20 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
                 
                 std::vector<std::string> arg_types = split(keyword.at("arg_sets").get<std::string>(), '|');
                 
-                json valid_args = {{"int", "0"}};
+                json valid_args = R"({ "int":0, "uint":0 })"_json;
                 
                 for (std::string &type : arg_types) {
-                        if (type != "int") {
+                        if (type != "int" && type != "uint") {
                                 if (!ARGS.contains(type)) {
                                         std::cerr << msg::error << "Unknown arg set in architecture: " << type << std::endl;
                                         exit(1);
                                 }
 
                                 valid_args.update(ARGS.at(type));
-                        } else {
-                                valid_args["int"] = "1";
+                        } else if (type == "int") {
+                                valid_args["int"] = 1;
+                        } else { // type == "uint"
+                                valid_args["uint"] = 1;
                         }
                 }
 
@@ -184,28 +199,33 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
                         // skip command name
                         if (arg == splitted[0]) continue;
 
-
-                        uint64_t byte_int;
-                        if (!valid_args.contains(arg)){
-                                if (valid_args["int"] == "0") {
-                                        std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
-                                        exit(1);
-                                } else {
-
-                                        byte_int = mk_int_arg(arg, MAX_INT_SIZE);
-                                }
+                        // Path for named arguments (e.g. registers)
+                        if (valid_args.contains(arg)) {
+                            binary_code += valid_args.at(arg).get<std::string>();
                         }
-
-                        if (valid_args["int"] == "0") {
-                                binary_code += valid_args.at(arg);
-                        } else {
-                                binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                        // Path for integer arguments
+                        else if (valid_args["int"] == 1) {
+                            uint64_t byte_int = mk_int_arg(arg, MAX_INT_SIZE, true);
+                            binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                        }
+                        // Path for unsigned integer arguments
+                        else if (valid_args["uint"] == 1) {
+                            uint64_t byte_int = mk_int_arg(arg, MAX_INT_SIZE, false);
+                            binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                        }
+                        // Path for error
+                        else {
+                            std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
+                            exit(1);
                         }
                 }
         }
 
         if (binary_code.size() != INSTRUCTION_SIZE) {
                 std::cerr << msg::error << "Error in architecture or because of args. Binary command is too long. Command: " << code << std::endl;
+                
+
+                
                 exit(1);
         }
         

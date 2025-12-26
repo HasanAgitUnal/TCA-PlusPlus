@@ -117,7 +117,7 @@ An example `architecture.json` might look like this:
 These are the top-level keys in the `architecture.json` file.
 
 - `"instruction_size"`: The total size of a single instruction, in bits (e.g., `8`).
-- `"max_int_size"`: The maximum bit size for an integer argument (e.g., `6` for a range of 0-63).
+- `"max_int_size"`: The maximum bit size for an integer argument (e.g., `6` for a range of 0-63 for unsigned and -32-31 for signed).
 
 ### Command Opcodes (`keywords`)
 
@@ -137,14 +137,14 @@ Define your CPU's instructions in the `keywords` object. Each key is the instruc
     "MVI": {
         "binary": "00",
         "arg_count": 1,
-        "arg_sets": "int"
+        "arg_sets": "uint"
     }
 }
 ```
 
 - `"binary"`: The base binary opcode for the instruction. The assembler concatenates this opcode with the binary representation of the arguments to form the final instruction. For example, if the opcode is `10` and the arguments' binary is `001010`, the final instruction will be `10001010`.
 - `"arg_count"`: The number of arguments the command takes. This must be `0` for commands that do not accept any arguments.
-- `"arg_sets"`: Defines the allowed types of arguments. You can specify multiple argument sets by separating them with a `|` character (e.g., `"reg|addr"`). The `int` type is built-in and does not require explicit definition in `arg_sets`; it signifies that the command expects an integer value.
+- `"arg_sets"`: Defines the allowed types of arguments. You can specify multiple argument sets by separating them with a `|` character (e.g., `"reg|addr"`). The `int` and `uint` types are built-in and does not require explicit definition in `arg_sets`; it signifies that the command expects an signed/unsigned integer value.
 
 ### Argument Sets (`arg_sets`)
 

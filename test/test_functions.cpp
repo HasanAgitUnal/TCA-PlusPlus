@@ -30,7 +30,7 @@ json KEYWORDS = R"(
     "MVI": {
         "binary": "00",
         "arg_count": 1,
-        "arg_sets": "int"
+        "arg_sets": "uint"
     },
     "OPPR": {
         "binary": "01000",
@@ -128,31 +128,47 @@ TEST(SplitAndCleanFunc, TestJob) {
 }
 
 TEST(MkIntArgFunc, TestJob) {
-        std::string s = "5";
-        uint64_t r = 5;
+        std::string s_pos = "5";
+        uint64_t r_pos = 5;
+        EXPECT_EQ(mk_int_arg(s_pos, MAX_INT, true), r_pos);
 
-        EXPECT_EQ(mk_int_arg(s, MAX_INT), r);
+        std::string s_neg = "-5";
+        uint64_t r_neg = static_cast<uint64_t>(-5);
+        EXPECT_EQ(mk_int_arg(s_neg, MAX_INT, true), r_neg);
+
+
+        std::string s_unsigned = "63";
+        uint64_t r_unsigned = 63;
+
+        EXPECT_EQ(mk_int_arg(s_unsigned, MAX_INT, false), r_unsigned);
 }
 
 TEST(MkIntArgFunc, TestError) {
-        std::string S5 = "938629806372";
-        std::string S6 = "-5";
-        std::string S7 = "kjsdgbcj";
 
+        std::string s_unsigned_big = "64";
         EXPECT_EXIT(
-                mk_int_arg(S5, MAX_INT),
+                mk_int_arg(s_unsigned_big, MAX_INT, false),
                 ::testing::ExitedWithCode(1),
                 "Integer is too big"
         );
 
+        std::string s_signed_big = "32"; // MAX_INT is 6, range is -32 to 31
         EXPECT_EXIT(
-                mk_int_arg(S6, MAX_INT),
+                mk_int_arg(s_signed_big, MAX_INT, true),
                 ::testing::ExitedWithCode(1),
-                "Signed binary"
+                "Integer is out of range"
         );
 
+        std::string s_signed_small = "-33";
         EXPECT_EXIT(
-                mk_int_arg(S7, MAX_INT),
+                mk_int_arg(s_signed_small, MAX_INT, true),
+                ::testing::ExitedWithCode(1),
+                "Integer is out of range"
+        );
+        
+        std::string s_invalid = "kjsdgbcj";
+        EXPECT_EXIT(
+                mk_int_arg(s_invalid, MAX_INT, true),
                 ::testing::ExitedWithCode(1),
                 "Invalid argument:"
         );
@@ -235,8 +251,8 @@ TEST(MkBinaryFunc, TestError) {
 }
 
 TEST(ParseCodeFunc, TestJob) {
-        std::vector<std::string> code = {"MOV R1 R2", "JMP", "OPPR OR", "MVI 36"};
-        std::vector<std::string> result = {"10001010", "11000100", "01000000", "00100100"};
+        std::vector<std::string> code = {"MOV R1 R2", "JMP", "OPPR OR", "MVI 30"};
+        std::vector<std::string> result = {"10001010", "11000100", "01000000", "00011110"};
 
         // This simple test should be enought
         EXPECT_EQ(parse_code(code, KEYWORDS, ARGS, INSTRUCTION, MAX_INT), result);

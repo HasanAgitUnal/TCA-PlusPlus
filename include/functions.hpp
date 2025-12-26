@@ -63,7 +63,7 @@ std::string read_files(std::vector<std::string> &files);
 std::vector<std::string> split_and_clean(std::string &str);
 
 // make int arg (string actualy) binary (uint64_t)
-uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE);
+uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE, bool is_signed);
 
 // make command binary
 std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::string &code, json &ARGS, json &KEYWORDS, int &MAX_INT_SIZE, int &INSTRUCTION_SIZE);
