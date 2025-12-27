@@ -29,7 +29,7 @@ MOV R2 R0
 OPPR SUB        ; R3 = R5 - 0
 
 MVI .halt
-JUMPIF =        ; If R3 is 0 (counter is done), jump to halt.
+JMPIF =        ; If R3 is 0 (counter is done), jump to halt.
 
 ; Add multiplicand to result. (R1 = R1 + R4)
 MOV R2 R4      ; OPPR needs multiplicand in R2.
