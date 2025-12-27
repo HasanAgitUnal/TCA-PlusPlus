@@ -217,13 +217,27 @@ std::vector<std::string> parse_code(std::vector<std::string> &codelines,
         std::vector<std::string> binary_commands;
         u_int ci = 0;
         json constraints;
+        
+        std::vector<std::string> codelines_nolabels;
+        
+        // First define labels in code
         for (std::string &code : codelines) {
-                // label
+                std::vector<std::string> splitted = split(code, ' ');
                 if (code[0] == '.') {
                         code.erase(0, 1);
                         constraints[code] = ci;
-                        continue;
+                } else {
+                        codelines_nolabels.push_back(code);
+                        
+                        // Increase counter if not const and label
+                        if (!(splitted[0] == "const" || splitted[0] == "uconst")) {
+                                ci++;
+                        }
                 }
+        }
+        
+        // Second define constraints and assemble code
+        for (std::string &code : codelines_nolabels) {
                 std::vector<std::string> splitted = split(code, ' ');
                 if (splitted.empty()) {
                         continue; // if im stupid maybe splitted be empty
@@ -274,14 +288,12 @@ std::vector<std::string> parse_code(std::vector<std::string> &codelines,
                                                 exit(1);
                                         }
                                         binary_commands.push_back(binary);
-                                        ci++;
                                         continue;
                                 }
                 // Realy parse command
                 binary_commands.push_back(mk_binary(splitted, keyword, code, ARGS, KEYWORDS,
                         MAX_INT_SIZE, INSTRUCTION_SIZE,
                         constraints));
-                ci++;
         }
         return binary_commands;
 }

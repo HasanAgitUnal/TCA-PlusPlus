@@ -261,7 +261,7 @@ TEST(MkBinaryFunc, TestError) {
         EXPECT_EXIT(
                 mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_CONSTRAINTS),
                 ::testing::ExitedWithCode(1),
-                "Error in architecture or because of args. Binary command is too long. Command:"
+                "Error in architecture or because of args. Binary of the command is too long. Command:"
         );
         
         EXPECT_EXIT(
