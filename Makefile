@@ -31,7 +31,7 @@ INCLUDE = -Iinclude
 default: clean test all
 
 # Main build target
-all: windows linux
+all: linux windows
 	@printf "> BUILD\t\t\t[   \033[0;32mCOMPLETED\033[0m   ]\n"
 	@printf "\n> Files generated in $(BUILD_DIR) folder\n"
 

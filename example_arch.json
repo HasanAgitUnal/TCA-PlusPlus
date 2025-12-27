@@ -22,7 +22,7 @@
             "binary": "11000100",
             "arg_count": 0
         },
-        "JUMPIF": {
+        "JMPIF": {
             "binary": "11000",
             "arg_count": 1,
             "arg_sets": "cond"

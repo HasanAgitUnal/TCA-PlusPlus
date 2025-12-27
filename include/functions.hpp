@@ -66,7 +66,7 @@ std::vector<std::string> split_and_clean(std::string &str);
 uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE, bool is_signed);
 
 // make command binary
-std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::string &code, json &ARGS, json &KEYWORDS, int &MAX_INT_SIZE, int &INSTRUCTION_SIZE, json &labels);
+std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::string &code, json &ARGS, json &KEYWORDS, int &MAX_INT_SIZE, int &INSTRUCTION_SIZE, json &constraints);
 
 // Parse given codelines and return a binary sring array
 std::vector<std::string> parse_code(std::vector<std::string> &codelines, json &KEYWORDS, json &ARGS, int &INSTRUCTION_SIZE, int &MAX_INT_SIZE);

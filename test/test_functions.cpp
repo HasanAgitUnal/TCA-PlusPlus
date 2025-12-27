@@ -88,7 +88,7 @@ json ARGS = R"(
 }
 )"_json;
 
-json EMPTY_LABELS;
+json EMPTY_CONSTRAINTS;
 
 TEST(SplitFunc, TestJob) {
         const std::vector<std::string> HELLO = {"hello", "world"};
@@ -207,25 +207,25 @@ TEST(MkBinaryFunc, TestJob) {
         std::vector<std::string> S4 = {"MVI", ".example"};
         std::string C4 = "MVI .example";
         std::string E4 = "00000010";
-        json example_label = R"({ "example": 2 })"_json;        
+        json example_const = R"({ "example": 2 })"_json;        
 
         EXPECT_EQ(
-                mk_binary( S1, K1, C1, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
+                mk_binary( S1, K1, C1, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_CONSTRAINTS),
                 E1 
         );
 
         EXPECT_EQ(
-                mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
+                mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_CONSTRAINTS),
                 E2
         );
 
         EXPECT_EQ(
-                mk_binary(S3, K3, C3, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
+                mk_binary(S3, K3, C3, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_CONSTRAINTS),
                 E3
         );
 
         EXPECT_EQ(
-                mk_binary(S4, KEYWORDS.at("MVI"), C4, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, example_label),
+                mk_binary(S4, KEYWORDS.at("MVI"), C4, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, example_const),
                 E4
         );
 
@@ -253,29 +253,28 @@ TEST(MkBinaryFunc, TestError) {
         std::string E3 = "00000010";
                
         EXPECT_EXIT(
-                mk_binary(S1, K1, C1, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
+                mk_binary(S1, K1, C1, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_CONSTRAINTS),
                 ::testing::ExitedWithCode(1),
                 "Unknown arg set in architecture"
         );
 
         EXPECT_EXIT(
-                mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
+                mk_binary(S2, K2, C2, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_CONSTRAINTS),
                 ::testing::ExitedWithCode(1),
                 "Error in architecture or because of args. Binary command is too long. Command:"
         );
         
         EXPECT_EXIT(
-                mk_binary(S3, KEYWORDS.at("MVI"), C3, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_LABELS),
+                mk_binary(S3, KEYWORDS.at("MVI"), C3, ARGS, KEYWORDS, MAX_INT, INSTRUCTION, EMPTY_CONSTRAINTS),
                 ::testing::ExitedWithCode(1),
                 "Invalid argument"
         );
 }
 
 TEST(ParseCodeFunc, TestJob) {
-        std::vector<std::string> code = {"MOV R1 R2", "JMP", "OPPR OR", "MVI 30"};
-        std::vector<std::string> result = {"10001010", "11000100", "01000000", "00011110"};
+        std::vector<std::string> code = { "const TEST 30", "MOV R1 R2", ".example",  "JMP", "OPPR OR", "MVI TEST", "MVI .example"};
+        std::vector<std::string> result = {"10001010", "11000100", "01000000", "00011110", "00000001"}; 
 
-        // This simple test should be enought
         EXPECT_EQ(parse_code(code, KEYWORDS, ARGS, INSTRUCTION, MAX_INT), result);
 }
 
@@ -283,7 +282,12 @@ TEST(ParseCodeFunc, TestError) {
         std::vector<std::string> invalidkey = {"GULUK"};
         std::vector<std::string> muchargs = {"MOV R1 R2 R3 R4"};
         std::vector<std::string> lessargs = {"MOV R1"};
-
+        std::vector<std::string> invalidconst = {"const asjgdub rtfgv"};
+        std::vector<std::string> invaliduconst = {"uconst sajgbskj skjdhsbkı"};
+        std::vector<std::string> invaliduconstvalue = {"uconst abc -5"};
+        std::vector<std::string> syntaxerrormuch = {"const 3sw44defr5t 3wcsetddvf tred5rtg"};
+        std::vector<std::string> syntaxerrorless = {"uconst werfv"};
+        
         EXPECT_EXIT(
                 parse_code(invalidkey, KEYWORDS, ARGS, INSTRUCTION, MAX_INT),
                 ::testing::ExitedWithCode(1),
@@ -301,6 +305,37 @@ TEST(ParseCodeFunc, TestError) {
                 ::testing::ExitedWithCode(1),
                 "Expected"
         );
+        
+        EXPECT_EXIT(
+                parse_code(invalidconst, KEYWORDS, ARGS, INSTRUCTION, MAX_INT),
+                ::testing::ExitedWithCode(1),
+                "Invalid int value in const decleration"
+        );
+        
+        EXPECT_EXIT(
+                parse_code(invaliduconst, KEYWORDS, ARGS, INSTRUCTION, MAX_INT),
+                ::testing::ExitedWithCode(1),
+                "Invalid int value in const decleration"
+        );
+
+        EXPECT_EXIT(
+                parse_code(invaliduconstvalue, KEYWORDS, ARGS, INSTRUCTION, MAX_INT),
+                ::testing::ExitedWithCode(1),
+                "Cant use negative values for unsigned constraint:"
+        );
+
+        EXPECT_EXIT(
+                parse_code(syntaxerrormuch, KEYWORDS, ARGS, INSTRUCTION, MAX_INT),
+                ::testing::ExitedWithCode(1),
+                "Syntax Error:"
+        );
+
+        EXPECT_EXIT(
+                parse_code(syntaxerrorless, KEYWORDS, ARGS, INSTRUCTION, MAX_INT),
+                ::testing::ExitedWithCode(1),
+                "Syntax Error:"
+        );
+
 }
 
 TEST(ConvertBinFunc, TestJob) {

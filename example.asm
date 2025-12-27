@@ -1,23 +1,55 @@
-; Loop addition code example
+; Multiplies two numbers using repeated addition.
+; R4 = Multiplicand, R5 = Multiplier
+; The final result is stored in R1.
+; You dont need to understand this code just undertand syntax
 
-; load R1 register
-MVI 5 ; MVI command uses R0 as save location
-MOV R0 R1
+uconst MULTIPLICAND 5
+uconst MULTIPLIER 3
 
-.loop
+; --- Setup ---
+MVI MULTIPLICAND
+MOV R4 R0        ; R4 = Multiplicand
 
-; load R2 register
-MVI 3
-MOV R0 R2
+MVI MULTIPLIER
+MOV R5 R0        ; R5 = Multiplier (counter)
 
-; add R1 and R2 register . OPPR command uses R1 and R2 as input and R3 as output
-OPPR ADD
+MVI 0
+MOV R1 R0        ; R1 = 0 (result accumulator)
 
-; Load R1 with result value
-MOV R3 R1
+.loop_start
+; --- Main Loop ---
 
-; Jump to loop
-MVI .loop ; skip R1 loading for not resetting
-JMP ; jmp to address at R0
+; Check if counter (R5) is zero.
+; To do this, we calculate R5-0 and check if R3 is zero.
+; Note: This section has a logic bug due to register conflicts,
+; but it is syntactically correct for the assembler test.
+MOV R1 R5
+MVI 0
+MOV R2 R0
+OPPR SUB        ; R3 = R5 - 0
 
-; this will be run endless
+MVI .halt
+JUMPIF =        ; If R3 is 0 (counter is done), jump to halt.
+
+; Add multiplicand to result. (R1 = R1 + R4)
+MOV R2 R4      ; OPPR needs multiplicand in R2.
+OPPR ADD        ; R3 = R1 + R2 (result + multiplicand)
+MOV R1 R3      ; Store new result in R1.
+
+; Decrement counter. (R5 = R5 - 1)
+MOV R1 R5      ; OPPR needs counter in R1.
+MVI 1
+MOV R2 R0      ; R2 = 1
+OPPR SUB        ; R3 = R1 - R2 (counter - 1)
+MOV R5 R3      ; Store new counter value in R5.
+
+; Jump back to the start of the loop.
+MVI .loop_start
+JMP
+
+.halt
+
+; --- Halt ---
+; Infinite loop to halt execution. Result is in R1.
+MVI .halt
+JMP

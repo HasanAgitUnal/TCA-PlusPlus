@@ -1,139 +1,120 @@
 // TCA++ Assembler
 // Copyright (C) 2025  Hasan Agit Ünal
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 #ifdef _WIN32
-#include <windows.h>
 #include <shlobj.h>
+#include <windows.h>
 #endif
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
-#include <vector>
-#include <string>
 #include <bitset>
-
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 #include <cstdint>
 #include <cstdlib>
 
 #include "nlohmann/json.hpp"
-
 #include "../include/functions.hpp" // get message mods
 
 using json = nlohmann::json;
 
+//
+// Welcome to the most unreadable code file
+//
+
 std::string getConfigPath() {
-
 #ifdef _WIN32
-    // Windows
-    char path[MAX_PATH];
-    if (SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, path) != S_OK) {
-        return "";
-    }
-    return std::string(path) + "\\tcapp\\architecture.json";
+        // Windows
+        char path[MAX_PATH];
+        if (SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, path) != S_OK) {
+                return "";
+        }
+        return std::string(path) + "\\tcapp\\architecture.json";
 #else
-    // Linux
-    return std::string(getenv("HOME")) + "/.config/tcapp/architecture.json";
+        // Linux
+        return std::string(getenv("HOME")) + "/.config/tcapp/architecture.json";
 #endif
-
 }
 
 // splits str by delim seperator
-std::vector<std::string> split(const std::string& str, char delim) {
+std::vector<std::string> split(const std::string &str, char delim) {
         std::vector<std::string> items;
         std::stringstream ss(str);
         std::string item;
-
         while (std::getline(ss, item, delim))
                 if (!item.empty()) {
                         items.push_back(item);
                 }
-
         return items;
 }
-
 // cleans string from whitespace
-std::string strip(const std::string& str) {
-    size_t start = str.find_first_not_of(" \t\n\r\f\v");
-    if (start == std::string::npos) return "";
-    size_t end = str.find_last_not_of(" \t\n\r\f\v");
-    return str.substr(start, end - start + 1);
+std::string strip(const std::string &str) {
+        size_t start = str.find_first_not_of(" \t\n\r\f\v");
+        if (start == std::string::npos)
+                return "";
+        size_t end = str.find_last_not_of(" \t\n\r\f\v");
+        return str.substr(start, end - start + 1);
 }
-
 // Read single file
 std::string read_file(std::string &f) {
         std::ifstream file(f);
-
         if (!file.is_open() && getConfigPath() != f) {
                 std::cerr << msg::error << "Cant read file: " << f << std::endl;
                 exit(1);
-
         } else if (!file.is_open()) { // Reading default config file
                 std::cerr << msg::error << "No config file found or cant read it. Use tca++ --help to see config location";
                 exit(1);
         }
-
         std::stringstream buffer;
         buffer << file.rdbuf();
-
         return buffer.str();
 }
-
 // Read given files, add end to and and return as a std::string
 std::string read_files(std::vector<std::string> &files) {
         std::string readed;
-
-        for (std::string& filename : files) {
+        for (std::string &filename : files) {
                 readed += "\n" + read_file(filename);
         }
-
         return readed;
 }
-
-
-// split str by newlines and remove comments which starts with ';' for every line. skip empty lines 
+// split str by newlines and remove comments which starts with ';' for every
+// line. skip empty lines
 std::vector<std::string> split_and_clean(std::string &str) {
         std::vector<std::string> lines = split(str, '\n');
         std::vector<std::string> result;
-
-        for (std::string& line : lines) {
+        for (std::string &line : lines) {
                 line = strip(line.substr(0, line.find(';')));
-
-                if (line != "" ){
+                if (line != "") {
                         result.push_back(line);
                 }
         }
-
         return result;
 }
-
 // make int arg
 uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE, bool is_signed) {
         if (MAX_INT_SIZE > 64) {
                 std::cerr << msg::error << "Error in Archtitecture. More than 64 bit integer not supported";
                 exit(1);
         }
-
         uint64_t uarg;
-
         try {
                 if (is_signed) {
                         long long intarg = std::stoll(arg);
-
                         // Check if the value fits within the specified signed bit width.
                         if (MAX_INT_SIZE < 64) {
                                 long long min_val = -(1LL << (MAX_INT_SIZE - 1));
@@ -143,49 +124,40 @@ uint64_t mk_int_arg(std::string &arg, int &MAX_INT_SIZE, bool is_signed) {
                                         exit(1);
                                 }
                         }
-
-                        
                         uarg = static_cast<uint64_t>(intarg);
                 } else { // Unsigned
                         unsigned long long intarg = std::stoull(arg);
-
                         uint64_t maxInt = (MAX_INT_SIZE == 64) ? UINT64_MAX : (1ULL << MAX_INT_SIZE) - 1;
-
                         if (intarg > maxInt) {
                                 std::cerr << msg::error << "Integer is too big: " << intarg << ". Max integer for this architecture: " << maxInt << std::endl;
                                 exit(1);
                         }
-                        
                         uarg = static_cast<uint64_t>(intarg);
                 }
-        } catch(const std::exception& e) {
+        } catch (const std::exception &e) {
                 std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
                 exit(1);
         }
-
         return uarg;
 }
-
 // make command binary
-std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::string &code, json &ARGS, json &KEYWORDS, int &MAX_INT_SIZE, int &INSTRUCTION_SIZE, json &labels) {
+std::string mk_binary(std::vector<std::string> &splitted, json &keyword,
+                std::string &code, json &ARGS, json &KEYWORDS,
+                int &MAX_INT_SIZE, int &INSTRUCTION_SIZE,
+                json &constraints) {
         std::string binary_code = keyword.at("binary").get<std::string>();
-
-        // if arg_count is bigger than zero add arg bytes. otherwise just command opcode will be used as binary_code
-        if ( keyword.at("arg_count").get<int>() > 0 ) {
-
-                // Get valid args from "valid_args" value 
-                
+        // if arg_count is bigger than zero add arg bytes. otherwise just command
+        // opcode will be used as binary_code
+        if (keyword.at("arg_count").get<int>() > 0) {
+                // Get valid args from "valid_args" value
                 std::vector<std::string> arg_types = split(keyword.at("arg_sets").get<std::string>(), '|');
-                
                 json valid_args = R"({ "int":0, "uint":0 })"_json;
-                
                 for (std::string &type : arg_types) {
                         if (type != "int" && type != "uint") {
                                 if (!ARGS.contains(type)) {
                                         std::cerr << msg::error << "Unknown arg set in architecture: " << type << std::endl;
                                         exit(1);
                                 }
-
                                 valid_args.update(ARGS.at(type));
                         } else if (type == "int") {
                                 valid_args["int"] = 1;
@@ -193,138 +165,160 @@ std::string mk_binary(std::vector<std::string> &splitted, json &keyword, std::st
                                 valid_args["uint"] = 1;
                         }
                 }
-
                 // Add argument bytes end to end
                 for (std::string &arg : splitted) {
                         // skip command name
-                        if (arg == splitted[0]) continue;
-
+                        if (arg == splitted[0])
+                                continue;
                         std::string arg_cut = arg;
                         arg_cut.erase(0, 1);
-                        
                         if (valid_args.contains(arg)) {
-                            binary_code += valid_args.at(arg).get<std::string>();
+                                binary_code += valid_args.at(arg).get<std::string>();
                         }
-
-                        else if (labels.contains(arg_cut)) {
-                                uint64_t byte_int = labels[arg_cut]; 
+                        else if (constraints.contains(arg_cut)) {
+                                uint64_t byte_int = constraints[arg_cut];
                                 binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
                         }
-                        
+                        else if (constraints.contains(arg)) {
+                                json &const_value = constraints[arg];
+                                
+                                if (const_value["type"] == "const") {
+                                        int64_t byte_int = const_value["value"];
+                                        binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                                } else {
+                                        uint64_t byte_int = const_value["value"];
+                                        binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                                }
+                        }
                         else if (valid_args["int"] == 1) {
-                            uint64_t byte_int = mk_int_arg(arg, MAX_INT_SIZE, true);
-                            binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                                uint64_t byte_int = mk_int_arg(arg, MAX_INT_SIZE, true);
+                                binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
                         }
-
                         else if (valid_args["uint"] == 1) {
-                            uint64_t byte_int = mk_int_arg(arg, MAX_INT_SIZE, false);
-                            binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
+                                uint64_t byte_int = mk_int_arg(arg, MAX_INT_SIZE, false);
+                                binary_code += std::bitset<64>(byte_int).to_string().substr(64 - MAX_INT_SIZE);
                         }
-
                         else {
-                            std::cerr << msg::error << "Invalid argument: " << arg << std::endl;
-                            exit(1);
+                                std::cerr << msg::error << "Invalid argument:\"" << arg << "\"\n";
+                                exit(1);
                         }
                 }
         }
-
         if (binary_code.size() != INSTRUCTION_SIZE) {
-                std::cerr << msg::error << "Error in architecture or because of args. Binary command is too long. Command: " << code << std::endl;
+                std::cerr << msg::error << "Error in architecture or because of args. Binary of the command is too long. Command: " << code << std::endl;
                 exit(1);
         }
-        
         return binary_code;
 }
-
 // Parse given codelines and return a binary sring array
-std::vector<std::string> parse_code(std::vector<std::string> &codelines, json &KEYWORDS, json &ARGS, int &INSTRUCTION_SIZE, int &MAX_INT_SIZE) {
+std::vector<std::string> parse_code(std::vector<std::string> &codelines,
+        json &KEYWORDS, json &ARGS,
+        int &INSTRUCTION_SIZE, int &MAX_INT_SIZE) {
         std::vector<std::string> binary_commands;
-
         u_int ci = 0;
-        json labels;
-        
-        for (std::string& code : codelines) {
-                
-                if ( code[0] == '.' ) {
+        json constraints;
+        for (std::string &code : codelines) {
+                // label
+                if (code[0] == '.') {
                         code.erase(0, 1);
-                        labels[code] = ci;
-                        continue;        
+                        constraints[code] = ci;
+                        continue;
                 }
-                
                 std::vector<std::string> splitted = split(code, ' ');
-                if (splitted.empty()) continue; // if im stupid maybe splitted be empty
-
-                if (!KEYWORDS.contains(splitted[0])){
-                        std::cerr << msg::error << "Invalid keyword: \"" << splitted[0] << "\"\n";
-                        exit(1);
+                if (splitted.empty()) {
+                        continue; // if im stupid maybe splitted be empty
                 }
-
-                json &keyword = KEYWORDS.at(splitted[0]);
-
-                const std::string &binary = keyword.at("binary").get<std::string>();
-                int arg_count =  keyword.at("arg_count").get<int>();
-
-                if (splitted.size()-1 > arg_count || splitted.size()-1 < arg_count) {
-                        std::cerr << msg::error << "Expected " << arg_count << " arguments but " << splitted.size()-1 << " given.\n";
-                        exit(1);
-                }
-
-                // If doesnt takes arguments just add command itself
-                if (arg_count == 0) {
-                        if (binary.size() != INSTRUCTION_SIZE) {
-                                std::cerr << msg::error << "Error in command architecture. Command \"" << splitted[0] << "\" has invalid binary.\n";
+                if (splitted[0] == "const" || splitted[0] == "uconst") {
+                        if (splitted.size() != 3) {
+                                std::cerr << msg::error << "Syntax Error: \"" << code << "\"\n";
+                                exit(1);
+                        }
+                        
+                        int value;
+                        try {
+                                value = stoi(splitted[2]);
+                        } catch (const std::exception& e) {
+                                std::cerr << msg::error << "Invalid int value in const decleration: \"" << code << "\"\n";
                                 exit(1);
                         }
 
-                        binary_commands.push_back(binary);
+                        if (splitted[0] == "uconst" && value < 0) {
+                                std::cerr << msg::error << "Cant use negative values for unsigned constraint: \"" << code << "\"\n";
+                                exit(1);
+                        }
+                               
+                        json const_value;
+                        const_value["type"] = splitted[0];
+                        const_value["value"] = value;
+                        
+                        constraints[splitted[1]] = const_value;
+                        
                         continue;
                 }
-
+                if (!KEYWORDS.contains(splitted[0])) {
+                        std::cerr << msg::error << "Invalid keyword: \"" << splitted[0] << "\"\n";
+                        exit(1);
+                }
+                json &keyword = KEYWORDS.at(splitted[0]);
+                const std::string &binary = keyword.at("binary").get<std::string>();
+                int arg_count = keyword.at("arg_count").get<int>();
+                if (splitted.size() - 1 > arg_count || splitted.size() - 1 < arg_count) {
+                        std::cerr << msg::error << "Expected " << arg_count << " arguments but " << splitted.size() - 1 << " given.\n";
+                        exit(1);
+                }
+                                // If doesnt takes arguments just add command itself
+                                if (arg_count == 0) {
+                                        if (binary.size() != INSTRUCTION_SIZE) {
+                                                std::cerr << msg::error << "Error in command architecture. Command \""
+                                                                  << splitted[0] << "\" has invalid binary.\n";
+                                                exit(1);
+                                        }
+                                        binary_commands.push_back(binary);
+                                        ci++;
+                                        continue;
+                                }
                 // Realy parse command
-                binary_commands.push_back(mk_binary(splitted, keyword, code, ARGS, KEYWORDS, MAX_INT_SIZE, INSTRUCTION_SIZE, labels));
-        
+                binary_commands.push_back(mk_binary(splitted, keyword, code, ARGS, KEYWORDS,
+                        MAX_INT_SIZE, INSTRUCTION_SIZE,
+                        constraints));
                 ci++;
         }
-
         return binary_commands;
 }
-
 // for example make "010" -> 2
 std::vector<uint8_t> convert_bin(std::vector<std::string> &binarytext) {
         std::vector<uint8_t> output;
-        for (std::string& bin : binarytext) {
+        for (std::string &bin : binarytext) {
                 for (size_t i = 0; i + 8 <= bin.size(); i += 8)
-                        output.push_back(static_cast<uint8_t>(std::stoul(bin.substr(i, 8), nullptr, 2)));
-
+                        output.push_back(
+                                static_cast<uint8_t>(std::stoul(bin.substr(i, 8), nullptr, 2)));
                 size_t rem = bin.size() % 8;
                 if (rem) {
-                        output.push_back(static_cast<uint8_t>(std::stoul(bin.substr(bin.size() - rem), nullptr, 2)));
+                        output.push_back(static_cast<uint8_t>(
+                                std::stoul(bin.substr(bin.size() - rem), nullptr, 2)));
                 }
         }
-
         return output;
 }
-
-// for example make "010" -> 0x02  
-std::string convert_hex(std::vector<std::string> &binarytext, int &INSTRUCTION_SIZE) {
-        std::string hexadecimal_text;
-
+// for example make "010" -> 0x02
+std::string convert_hex(std::vector<std::string> &binarytext,
+                int &INSTRUCTION_SIZE) {
+        
+                        std::string hexadecimal_text;
         for (std::string bin : binarytext) {
                 unsigned long long val = std::stoull(bin, nullptr, 2);
                 std::stringstream ss;
-                ss << "0x" << std::hex << std::setw(INSTRUCTION_SIZE / 4) << std::setfill('0') << val;
+                ss << "0x" << std::hex << std::setw(INSTRUCTION_SIZE / 4)
+                        << std::setfill('0') << val;
                 hexadecimal_text += ss.str() + "\n";
         }
-
         return hexadecimal_text;
 }
-
 // dont look at name just makes list a std::string seperated with \n
 std::string sep_bin(std::vector<std::string> &binarytext) {
         std::string output;
         for (std::string bin : binarytext) {
                 output += bin + "\n";
         }
-
         return output;
 }
